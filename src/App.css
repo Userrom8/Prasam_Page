@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.main {
+  @apply w-screen h-screen dark:bg-stone-900 bg-stone-100 fixed;
+}
+
+.app {
+  @apply relative z-10 flex justify-center items-center flex-col mx-auto;
+}
+
+.nav-links {
+  @apply hover:tracking-widest cursor-pointer transition-all;
+}
+
+.showcase {
+  /* @apply w-48 h-32 rounded-xl bg-slate-500 mr-4 border-stone-300 border-2; */
+  @apply w-48 h-auto rounded-lg mr-10 overflow-hidden;
+}
+
+.wrapper_fade {
+  mask-image: linear-gradient(to right, transparent, black, black, transparent);
+}
+
+.nav_button {
+  @apply [&_svg]:stroke-gray-600 [&_svg]:hover:stroke-gray-900 [&_svg]:dark:stroke-gray-500 [&_svg]:dark:hover:stroke-gray-300 h-8 w-8 flex justify-center items-center rounded-sm hover:bg-slate-300 active:bg-slate-400 dark:hover:bg-stone-700 dark:active:bg-stone-600 transition-colors duration-75;
+}
+
+.collapse_nav_button {
+  @apply [&_svg]:stroke-gray-900 [&_svg]:hover:stroke-gray-900 [&_svg]:dark:stroke-gray-400 [&_svg]:dark:hover:stroke-gray-200 h-8 w-8 flex justify-center items-center rounded-sm hover:bg-slate-300 active:bg-slate-400 dark:hover:bg-stone-600 dark:active:bg-stone-500 transition-colors duration-75;
+}
+
+.section_header_container {
+  @apply flex flex-col justify-start px-5;
+}
+
+.section_header {
+  @apply font-poppins font-medium leading-none lg:text-6xl md:text-4xl text-4xl py-2 md:px-10;
+}
+
+.section_header_text {
+  @apply font-poppins font-extralight leading-none md:text-xl text-lg md:pl-10 pl-5 tracking-tight;
+}
+
+.intro_text{
+  @apply lg:text-9xl md:text-8xl sm:text-7xl text-6xl md:pb-32 pb-20 font-Grotesk font-semibold
+}
