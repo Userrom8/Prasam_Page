@@ -28,7 +28,7 @@ const Content = () => {
               <motion.img
                 src={photos[item]}
                 alt={item}
-                className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 sm:w-60 w-40 h-auto rounded-md cursor-pointer shadow-lg"
+                className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 xs:w-40 w-28 h-auto rounded-md cursor-pointer shadow-lg"
                 whileHover={{ scale: 1.05 }}
                 onClick={() => setSelectedImage(photos[item])}
               />

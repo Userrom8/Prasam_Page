@@ -44,5 +44,5 @@
 }
 
 .intro_text{
-  @apply lg:text-9xl md:text-8xl sm:text-7xl text-6xl md:pb-32 pb-20 font-Grotesk font-semibold
+  @apply lg:text-9xl md:text-8xl sm:text-7xl xs:text-6xl xs+:text-5xl text-4xl md:pb-32 pb-20 font-Grotesk font-semibold
 }

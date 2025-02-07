@@ -6,6 +6,8 @@ export default {
     extend: {
       screens: {
         "lg+": "1200px",
+        "xs": "425px",
+        "xs+": "375px",
       },
       fontFamily: {
         Grotesk: ["Cabinet Grotesk", "sans-serif"],

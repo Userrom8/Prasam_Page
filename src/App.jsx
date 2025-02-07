@@ -97,7 +97,7 @@ const App = () => {
         >
           <h1
             id="welcome"
-            className="md:text-9xl sm:8xl text-7xl font-bold dark:text-gray-100 text-gray-900 font-spaceGrotesk"
+            className="md:text-9xl sm:8xl xs:text-7xl xs+:text-6xl text-5xl font-bold dark:text-gray-100 text-gray-900 font-spaceGrotesk"
           >
             Welcome.
           </h1>
