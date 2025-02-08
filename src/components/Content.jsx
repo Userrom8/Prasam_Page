@@ -7,14 +7,16 @@ import photos from "../assets/showcase";
 
 const Content = () => {
   const [selectedImage, setSelectedImage] = useState(null);
-  
 
   useEffect(() => {
     selectedImage ? disablePageScroll() : enablePageScroll();
   }, [selectedImage]);
 
   return (
-    <div id="target-section" className="w-full flex justify-center bg-gray-200 dark:bg-neutral-800">
+    <div
+      id="target-section"
+      className="w-full flex justify-center bg-gray-200 dark:bg-neutral-800"
+    >
       <div className="lg:px-16 md:px-10 px-6 py-20 w-full max-w-7xl">
         <div className="section_header_container">
           <p className="section_header">Gallery</p>
@@ -28,6 +30,7 @@ const Content = () => {
               <motion.img
                 src={photos[item]}
                 alt={item}
+                loading="lazy"
                 className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 xs:w-40 w-28 h-auto rounded-md cursor-pointer shadow-lg"
                 whileHover={{ scale: 1.05 }}
                 onClick={() => setSelectedImage(photos[item])}
@@ -49,6 +52,7 @@ const Content = () => {
               <motion.img
                 src={selectedImage}
                 alt="Full Image"
+                loading="lazy"
                 className="max-w-[90%] max-h-[90%] rounded-lg shadow-xl"
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
