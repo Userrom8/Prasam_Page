@@ -36,7 +36,7 @@ const Hero = () => {
         <div className="flex flex-col gap-2 xl:max-w-[36rem] lg:max-w-[32rem] md:max-w-[25rem]">
           <div className="flex flex-row justify-between items-baseline ml-4 max-w-[90vw]">
             <p className="tracking-wider">Latest shots</p>
-            <a className="text-sm font-extralight cursor-pointer dark:text-blue-400 text-blue-600 tracking-wide md:pr-4 pr-0 transition-transform duration-300 hover:scale-125 hover:text-blue-800 dark:hover:text-blue-600">
+            <a href="#target-section" className="text-sm font-extralight cursor-pointer dark:text-blue-400 text-blue-600 tracking-wide md:pr-4 pr-0 transition-transform duration-300 hover:scale-125 hover:text-blue-800 dark:hover:text-blue-600">
               view all
             </a>
           </div>
