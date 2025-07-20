@@ -68,7 +68,7 @@ const Nav = () => {
     setClickState(index);
   };
 
-  const links = ["Portfolio", "Blog", "Client reviews", "Contact me"];
+  const links = ["Portfolio", "Blog", "Testimonials", "Contact me"];
 
   const [openNav, setOpenNav] = useState(false);
 

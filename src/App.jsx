@@ -8,7 +8,7 @@ import Nav from "./components/Nav";
 import Hero from "./components/Hero";
 import Content from "./components/Content";
 import Footer from "./components/Footer";
-import Reviews from "./components/Reviews";
+import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
 import AutoPlaySound from "./components/AutoPlaySound";
 
@@ -110,7 +110,7 @@ const App = () => {
         <Nav />
         <Hero />
         <Content />
-        <Reviews />
+        <Testimonials />
         <Contact />
         <Footer />
       </div>
