@@ -8,8 +8,8 @@ import Nav from "./components/Nav";
 import Hero from "./components/Hero";
 import Content from "./components/Content";
 import Footer from "./components/Footer";
-import Copyright from "./components/Copyright";
 import Reviews from "./components/Reviews";
+import Contact from "./components/Contact";
 import AutoPlaySound from "./components/AutoPlaySound";
 
 import ThemeContext from "./services/theme";
@@ -111,8 +111,8 @@ const App = () => {
         <Hero />
         <Content />
         <Reviews />
+        <Contact />
         <Footer />
-        <Copyright />
       </div>
     </main>
   );
