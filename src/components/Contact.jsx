@@ -3,16 +3,16 @@ const Contact = () => {
     <div id="contact-section" className="w-full py-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-16 md:px-10">
         <div className="section_header_container mb-12 text-center">
-          <p className="section_header">Let's Create Together</p>
-          <p className="section_header_text">Have a project in mind? I'd love to hear from you.</p>
+          <p className="section_header">Let&apos;s Create Together</p>
+          <p className="section_header_text">Have a project in mind? I&apos;d love to hear from you.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           {/* Left Column: Personal Message */}
           <div className="text-center md:text-left">
-            <h3 className="text-3xl font-bold mb-4">Let's Connect</h3>
+            <h3 className="text-3xl font-bold mb-4">Let&apos;s Connect</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              I'm passionate about capturing moments and telling stories through my lens. If you're looking for a photographer who is dedicated, creative, and easy to work with, I'm your person.
+              I&apos;m passionate about capturing moments and telling stories through my lens. If you&apos;re looking for a photographer who is dedicated, creative, and easy to work with, I&apos;m your person.
             </p>
             <p className="text-gray-600 dark:text-gray-400">
               Whether you have a question about my work, want to collaborate, or just want to say hello, feel free to reach out.
