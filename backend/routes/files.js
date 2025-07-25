@@ -5,7 +5,7 @@ import * as fileController from "../controller/fileController.js";
 const router = express.Router();
 
 // Destructure the controller functions
-const { getFiles, uploadFile, displayFile } = fileController;
+const { getFiles, uploadFile, displayFile, deleteFile } = fileController;
 
 // @route   GET /api/files
 // @desc    Get all image metadata
