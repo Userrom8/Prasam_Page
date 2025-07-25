@@ -21,6 +21,8 @@ const corsOptions = {
 
 // --- MIDDLEWARE ---
 app.use(cors(corsOptions));
+// **ADD THIS LINE:** Enable pre-flight requests for all routes
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // --- ROUTES ---
