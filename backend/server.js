@@ -57,6 +57,11 @@ app.delete("/api/photos/:id", (req, res) => {
   }
 });
 
+// GET route for the root of the app
+app.get("/", (req, res) => {
+  res.send("this indicates the photo API is working!");
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
