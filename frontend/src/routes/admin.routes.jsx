@@ -1,9 +1,9 @@
-import Admin from "../components/Admin";
+import AdminPage from "../pages/AdminPage";
 
 const adminRoutes = [
   {
     path: "/admin",
-    element: <Admin />,
+    element: <AdminPage />,
   },
 ];
 
