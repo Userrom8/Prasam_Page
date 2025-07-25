@@ -20,13 +20,11 @@ const App = () => {
     <main>
       <AutoPlaySound />
       <div className="main"></div>
-      <div className="app">
         <Routes>
           {allRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
           ))}
         </Routes>
-      </div>
     </main>
   );
 };
