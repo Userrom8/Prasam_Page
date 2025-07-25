@@ -29,17 +29,12 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-sky-400">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#reviews" className="hover:text-sky-400">
+                <a href="#testimonials" className="hover:text-sky-400">
                   Client Reviews
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-sky-400">
+                <a href="#contact-section" className="hover:text-sky-400">
                   Contact Me
                 </a>
               </li>

@@ -68,7 +68,11 @@ const Nav = () => {
     setClickState(index);
   };
 
-  const links = ["Portfolio", "Blog", "Testimonials", "Contact me"];
+  const links = [
+    { display: "Portfolio", target: "#target-section" },
+    { display: "Testimonials", target: "#testimonials" },
+    { display: "Contact me", target: "#contact-section" },
+  ];
 
   const [openNav, setOpenNav] = useState(false);
 
@@ -109,6 +113,7 @@ const Nav = () => {
   const navLinks = (link, index) => {
     return (
       <a
+        href={link.target}
         key={index}
         className="nav-links"
         onClick={() => {
@@ -130,7 +135,7 @@ const Nav = () => {
             : "none",
         }}
       >
-        {link}
+        {link.display}
       </a>
     );
   };

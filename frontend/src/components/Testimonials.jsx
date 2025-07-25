@@ -24,7 +24,10 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <div className="w-full dark:bg-neutral-900 bg-gray-100 py-20">
+    <div
+      id="testimonials"
+      className="w-full dark:bg-neutral-900 bg-gray-100 py-20"
+    >
       <div className="max-w-7xl mx-auto px-6 lg:px-16 md:px-10">
         <div className="section_header_container mb-12 text-center">
           <p className="section_header">Testimonials</p>
