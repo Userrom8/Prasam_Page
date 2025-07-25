@@ -2,18 +2,22 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Content = () => {
   const [photos, setPhotos] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/photos")
+    // Fetch all image metadata from the backend
+    fetch(`${API_URL}/files`)
       .then((res) => res.json())
       .then((data) => setPhotos(data))
       .catch((err) => console.error("Failed to fetch photos:", err));
   }, []);
 
   useEffect(() => {
+    // Lock page scroll when the modal is open
     selectedImage ? disablePageScroll() : enablePageScroll();
   }, [selectedImage]);
 
@@ -31,14 +35,16 @@ const Content = () => {
         </div>
         <div className="grid grid-cols-2 gap-y-40 lg+:grid-cols-4 md:grid-cols-3 pt-20">
           {photos.map((photo) => (
-            <div key={photo.id} className="flex items-center flex-col">
+            <div key={photo._id} className="flex items-center flex-col">
               <motion.img
-                src={photo.url}
-                alt={photo.id}
+                src={`${API_URL}/image/${photo.filename}`}
+                alt={photo.filename}
                 loading="lazy"
                 className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 xs:w-40 w-28 h-auto rounded-md cursor-pointer shadow-lg"
                 whileHover={{ scale: 1.05 }}
-                onClick={() => setSelectedImage(photo.url)}
+                onClick={() =>
+                  setSelectedImage(`${API_URL}/image/${photo.filename}`)
+                }
               />
             </div>
           ))}
@@ -47,7 +53,7 @@ const Content = () => {
         <AnimatePresence>
           {selectedImage && (
             <motion.div
-              className="fixed inset-0 flex items-center justify-center bg-opacity-25 backdrop-blur-sm pt-20"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-25 backdrop-blur-sm pt-20"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -55,7 +61,7 @@ const Content = () => {
             >
               <motion.img
                 src={selectedImage}
-                alt="Full Image"
+                alt="Full Size"
                 loading="lazy"
                 className="max-w-[90%] max-h-[90%] rounded-lg shadow-xl"
                 initial={{ scale: 0.8 }}

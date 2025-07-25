@@ -1,14 +1,28 @@
+import { useState, useEffect, useContext } from "react";
 import Marquee from "react-fast-marquee";
 
 import { HeroDarkImg, HeroLightImg } from "../assets";
 import ThemeContext from "../services/theme";
 
-import { useContext } from "react";
-
-import shots from "../assets/showcase";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Hero = () => {
   const { dark } = useContext(ThemeContext);
+  const [latestShots, setLatestShots] = useState([]);
+
+  useEffect(() => {
+    // Fetch all image metadata from the backend
+    fetch(`${API_URL}/files`)
+      .then((res) => res.json())
+      .then((data) => {
+        // Sort by creation date and take the 7 most recent
+        const sortedData = data.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setLatestShots(sortedData.slice(0, 7));
+      })
+      .catch((err) => console.error("Failed to fetch latest shots:", err));
+  }, []);
 
   return (
     <div className="flex items-center justify-center md:flex-row flex-col dark:md:gap-0 md:gap-4 gap-16 dark:ml-0 md:ml-4 ml-0 lg:px-16 md:px-10 px-6 py-10 max-w-7xl pb-40">
@@ -46,13 +60,15 @@ const Hero = () => {
           </div>
           <div className="flex items-center justify-center">
             <Marquee className="flex flex-row md:max-w-[95vw] sm:max-w-[90vw] max-w-[85vw] wrapper_fade">
-              {Object.keys(shots)
-                .slice(0, 7) //for showing limited number of pics
-                .map((items) => (
-                  <div key={items} className="showcase">
-                    <img src={shots[items]} alt={items} loading="lazy" />
-                  </div>
-                ))}
+              {latestShots.map((photo) => (
+                <div key={photo._id} className="showcase">
+                  <img
+                    src={`${API_URL}/image/${photo.filename}`}
+                    alt={photo.filename}
+                    loading="lazy"
+                  />
+                </div>
+              ))}
             </Marquee>
           </div>
         </div>
