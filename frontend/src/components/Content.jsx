@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 
-import photos from "../assets/showcase";
-
 const Content = () => {
+  const [photos, setPhotos] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/photos")
+      .then((res) => res.json())
+      .then((data) => setPhotos(data))
+      .catch((err) => console.error("Failed to fetch photos:", err));
+  }, []);
 
   useEffect(() => {
     selectedImage ? disablePageScroll() : enablePageScroll();
@@ -25,21 +30,20 @@ const Content = () => {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-y-40 lg+:grid-cols-4 md:grid-cols-3 pt-20">
-          {Object.keys(photos).map((item) => (
-            <div key={item} className="flex items-center flex-col">
+          {photos.map((photo) => (
+            <div key={photo.id} className="flex items-center flex-col">
               <motion.img
-                src={photos[item]}
-                alt={item}
+                src={photo.url}
+                alt={photo.id}
                 loading="lazy"
                 className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 xs:w-40 w-28 h-auto rounded-md cursor-pointer shadow-lg"
                 whileHover={{ scale: 1.05 }}
-                onClick={() => setSelectedImage(photos[item])}
+                onClick={() => setSelectedImage(photo.url)}
               />
             </div>
           ))}
         </div>
 
-        {/* Fullscreen Pop-Out */}
         <AnimatePresence>
           {selectedImage && (
             <motion.div
