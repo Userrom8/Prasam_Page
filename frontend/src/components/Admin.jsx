@@ -62,13 +62,15 @@ const Admin = () => {
       .catch((err) => console.error("Failed to upload photo:", err));
   };
 
-  const handleDeletePhoto = (id) => {
-    fetch(`${API_URL}/files/${id}`, {
+  const handleDeletePhoto = (filename) => {
+    fetch(`${API_URL}/image/${filename}`, {
+      // Corrected URL
       method: "DELETE",
     })
       .then((res) => {
         if (res.ok) {
-          setPhotos(photos.filter((photo) => photo._id !== id));
+          // Filter out the deleted photo by filename
+          setPhotos(photos.filter((photo) => photo.filename !== filename));
         } else {
           alert("Failed to delete photo.");
         }
@@ -112,7 +114,7 @@ const Admin = () => {
               />
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => handleDeletePhoto(photo._id)}
+                  onClick={() => handleDeletePhoto(photo.filename)}
                   className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-2 rounded-full"
                 >
                   DELETE
