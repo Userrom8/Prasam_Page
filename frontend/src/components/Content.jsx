@@ -21,6 +21,36 @@ const Content = () => {
     selectedImage ? disablePageScroll() : enablePageScroll();
   }, [selectedImage]);
 
+  useEffect(() => {
+    // Attempt to block screenshots
+    const handleKeyDown = (e) => {
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        alert("Screenshots are disabled on this page.");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+
+  const handleImageClick = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedImage(null);
+  };
+
+  // Prevent right-click context menu
+  const preventContextMenu = (e) => {
+    e.preventDefault();
+  };
+
   return (
     <div
       id="target-section"
@@ -43,8 +73,9 @@ const Content = () => {
                 className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 xs:w-40 w-28 h-auto rounded-md cursor-pointer shadow-lg"
                 whileHover={{ scale: 1.05 }}
                 onClick={() =>
-                  setSelectedImage(`${API_URL}/image/${photo.filename}`)
+                  handleImageClick(`${API_URL}/image/${photo.filename}`)
                 }
+                onContextMenu={preventContextMenu}
               />
             </div>
           ))}
@@ -57,16 +88,19 @@ const Content = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setSelectedImage(null)}
+              onClick={handleCloseModal}
+              onContextMenu={preventContextMenu}
             >
               <motion.img
                 src={selectedImage}
                 alt="Full Size"
                 loading="lazy"
-                className="max-w-[90%] max-h-[90%] rounded-lg shadow-xl"
+                className="max-w-[90%] max-h-[90%] rounded-lg shadow-xl pointer-events-none"
+                style={{ WebkitTouchCallout: 'none' }}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0.8 }}
+                onContextMenu={preventContextMenu}
               />
             </motion.div>
           )}

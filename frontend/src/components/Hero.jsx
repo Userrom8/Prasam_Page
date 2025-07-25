@@ -24,13 +24,20 @@ const Hero = () => {
       .catch((err) => console.error("Failed to fetch latest shots:", err));
   }, []);
 
+  // Prevent right-click context menu
+  const preventContextMenu = (e) => {
+    e.preventDefault();
+  };
+
   return (
     <div className="flex items-center justify-center md:flex-row flex-col dark:md:gap-0 md:gap-4 gap-16 dark:ml-0 md:ml-4 ml-0 lg:px-16 md:px-10 px-6 py-10 max-w-7xl pb-40">
       <img
         src={dark ? HeroDarkImg : HeroLightImg}
         alt="Full-shot of Prasam"
         loading="lazy"
-        className="w-[50%] border-sky-100 border-4 rounded-2xl dark:border-none shadow-black shadow-2xl dark:shadow-none"
+        className="w-[50%] border-sky-100 border-4 rounded-2xl dark:border-none shadow-black shadow-2xl dark:shadow-none pointer-events-none"
+        onContextMenu={preventContextMenu}
+        style={{ WebkitTouchCallout: "none" }}
       />
 
       <div className="flex flex-col gap-20 mt-10 lg:mt-0">
@@ -66,6 +73,9 @@ const Hero = () => {
                     src={`${API_URL}/image/${photo.filename}`}
                     alt={photo.filename}
                     loading="lazy"
+                    className="pointer-events-none"
+                    onContextMenu={preventContextMenu}
+                    style={{ WebkitTouchCallout: "none" }}
                   />
                 </div>
               ))}
