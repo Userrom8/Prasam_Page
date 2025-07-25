@@ -12,6 +12,13 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// --- CONFIGURE CORS HERE ---
+// Define the specific origin that is allowed to access your API
+const corsOptions = {
+  origin: "https://prasam.onrender.com",
+  optionsSuccessStatus: 200, // For legacy browser support
+};
+
 // --- MIDDLEWARE ---
 app.use(cors());
 app.use(express.json());
