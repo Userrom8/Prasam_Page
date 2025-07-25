@@ -46,16 +46,11 @@ const Admin = () => {
     })
       .then((res) => res.json())
       .then((newPhotoData) => {
-        // **FIX APPLIED HERE**
-        // Instead of refetching, add the new photo to the beginning of the array.
-        // Assumes the backend returns an object like { file: { id: '...', filename: '...' } }
         const newPhoto = {
           _id: newPhotoData.file.id,
           filename: newPhotoData.file.filename,
         };
         setPhotos((prevPhotos) => [newPhoto, ...prevPhotos]);
-
-        // Cleanup
         setSelectedFile(null);
         document.getElementById("file-input").value = null;
       })
