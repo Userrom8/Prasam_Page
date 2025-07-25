@@ -62,3 +62,21 @@ export const displayFile = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
+// @desc    Deletes a file by its filename
+export const deleteFile = async (req, res) => {
+  try {
+    const file = await Image.findOneAndDelete({
+      filename: req.params.filename,
+    });
+
+    if (!file) {
+      return res.status(404).json({ err: "No file exists" });
+    }
+
+    res.status(200).json({ message: "File deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+};

@@ -19,4 +19,8 @@ router.post("/upload", upload.single("file"), uploadFile);
 // @desc    Display a single image
 router.get("/image/:filename", displayFile);
 
+// @route   DELETE /api/image/:filename
+// @desc    Delete a single image
+router.delete("/image/:filename", deleteFile);
+
 export default router;
