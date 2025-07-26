@@ -9,9 +9,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 const Hero = () => {
   const { dark } = useContext(ThemeContext);
   const [latestShots, setLatestShots] = useState([]);
+  const [heroText, setHeroText] = useState("");
 
   useEffect(() => {
-    // Fetch all image metadata from the backend
+    // Fetch all image metadata and content from the backend
     fetch(`${API_URL}/files`)
       .then((res) => res.json())
       .then((data) => {
@@ -22,6 +23,16 @@ const Hero = () => {
         setLatestShots(sortedData.slice(0, 7));
       })
       .catch((err) => console.error("Failed to fetch latest shots:", err));
+
+    fetch(`${API_URL}/content`)
+      .then((res) => res.json())
+      .then((data) =>
+        setHeroText(
+          data.heroText ||
+            "Welcome to my portfolio. This text is editable from the admin panel."
+        )
+      )
+      .catch((err) => console.error("Failed to fetch hero text:", err));
   }, []);
 
   // Prevent right-click context menu
@@ -49,10 +60,7 @@ const Hero = () => {
             Prasam
           </p>
           <p className="dark:text-white text-black font-poppins dark:font-thin font-extralight tracking-wide">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia quo
-            error expedita cum, doloremque cumque assumenda ipsam, doloribus,
-            asperiores itaque mollitia? Alias vero obcaecati quas doloribus
-            culpa sint voluptatum? Nobis.
+            {heroText}
           </p>
         </div>
         <div className="flex flex-col gap-2 xl:max-w-[36rem] lg:max-w-[32rem] md:max-w-[25rem]">

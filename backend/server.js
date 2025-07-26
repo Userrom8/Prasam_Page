@@ -5,6 +5,7 @@ import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import filesRouter from "./routes/files.js";
+import contentRouter from "./routes/content.js";
 
 // Connect to MongoDB before starting the server
 connectDB();
@@ -15,14 +16,12 @@ const PORT = process.env.PORT || 5000;
 // --- CONFIGURE CORS HERE ---
 // Define the specific origin that is allowed to access your API
 const corsOptions = {
-  origin: "https://prasam.onrender.com",
+  origin: process.env.ORIGIN,
   optionsSuccessStatus: 200, // For legacy browser support
 };
 
 // --- MIDDLEWARE ---
 app.use(cors(corsOptions));
-// **ADD THIS LINE:** Enable pre-flight requests for all routes
-app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // --- ROUTES ---
@@ -30,8 +29,8 @@ app.get("/", (req, res) => {
   res.send("this indicates the photo API is working!");
 });
 
-// The router no longer needs gfs or conn passed to it
 app.use("/api", filesRouter);
+app.use("/api", contentRouter);
 
 // --- START SERVER ---
 app.listen(PORT, () => {

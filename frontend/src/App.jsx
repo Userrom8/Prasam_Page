@@ -1,9 +1,9 @@
 import { useEffect, useContext } from "react";
 import { Routes, Route } from "react-router-dom";
 
-import AutoPlaySound from "./components/AutoPlaySound";
 import ThemeContext from "./services/theme";
-import allRoutes from "./routes"; // Import the combined route config
+import allRoutes from "./routes";
+import { AuthProvider } from "./services/AuthContext";
 
 import "./App.css";
 
@@ -17,15 +17,16 @@ const App = () => {
   }, [dark]);
 
   return (
-    <main>
-      <AutoPlaySound />
-      <div className="main"></div>
+    <AuthProvider>
+      <main>
+        <div className="main"></div>
         <Routes>
           {allRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
           ))}
         </Routes>
-    </main>
+      </main>
+    </AuthProvider>
   );
 };
 

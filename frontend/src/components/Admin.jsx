@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../services/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -6,7 +8,13 @@ const Admin = () => {
   const [photos, setPhotos] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [error, setError] = useState("");
+
+  const [heroText, setHeroText] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+
   const [loading, setLoading] = useState(true);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const fetchPhotos = () => {
     setLoading(true);
@@ -23,9 +31,34 @@ const Admin = () => {
       });
   };
 
+  const fetchContent = () => {
+    fetch(`${API_URL}/content`)
+      .then((res) => res.json())
+      .then((data) => {
+        setHeroText(data.heroText || "");
+        setContactEmail(data.contactEmail || "");
+      })
+      .catch((err) => console.error("Failed to fetch site content:", err));
+  };
+
   useEffect(() => {
     fetchPhotos();
+    fetchContent();
   }, []);
+
+  const handleContentUpdate = (key, value) => {
+    fetch(`${API_URL}/content`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [key]: value }),
+    })
+      .then((res) => {
+        if (res.ok)
+          alert(`${key.replace(/([A-Z])/g, " $1")} updated successfully!`);
+        else alert(`Failed to update ${key}.`);
+      })
+      .catch((err) => console.error(`Failed to update ${key}:`, err));
+  };
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -73,15 +106,26 @@ const Admin = () => {
       .catch((err) => console.error("Failed to delete photo:", err));
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
 
   return (
     <div className="dark:bg-stone-900 bg-stone-100 min-h-screen text-black dark:text-white p-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          Admin - Manage Photos
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Admin - Manage Photos</h1>
+          <button
+            onClick={handleLogout}
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors"
+          >
+            Logout
+          </button>
+        </div>
         <div className="mb-8 p-4 bg-white dark:bg-neutral-800 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-2">Upload New Photo</h2>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -99,6 +143,63 @@ const Admin = () => {
             </button>
           </div>
         </div>
+
+        <div className="mb-8 p-4 bg-white dark:bg-neutral-800 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Manage Site Content</h2>
+          <div className="space-y-6">
+            {/* Hero Text Editor */}
+            <div>
+              <label
+                htmlFor="heroText"
+                className="block text-sm font-medium mb-1"
+              >
+                Hero Section Text
+              </label>
+              <textarea
+                id="heroText"
+                value={heroText}
+                onChange={(e) => setHeroText(e.target.value)}
+                maxLength="265"
+                className="w-full p-2 border rounded-md bg-slate-200 dark:bg-neutral-700 dark:border-neutral-600"
+                rows="4"
+              ></textarea>
+              <div className="text-right text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {heroText.length} / 265
+              </div>
+              <button
+                onClick={() => handleContentUpdate("heroText", heroText)}
+                className="mt-2 bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition-colors text-sm w-full sm:w-auto"
+              >
+                Save Hero Text
+              </button>
+            </div>
+            {/* Contact Email Editor */}
+            <div>
+              <label
+                htmlFor="contactEmail"
+                className="block text-sm font-medium mb-1"
+              >
+                Contact Email
+              </label>
+              <input
+                id="contactEmail"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                className="w-full p-2 border rounded-md bg-slate-200 dark:bg-neutral-700 dark:border-neutral-600"
+              />
+              <button
+                onClick={() =>
+                  handleContentUpdate("contactEmail", contactEmail)
+                }
+                className="mt-2 bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition-colors text-sm w-full sm:w-auto"
+              >
+                Save Email
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {photos.map((photo) => (
             <div key={photo._id} className="relative group">
