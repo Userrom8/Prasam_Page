@@ -1,25 +1,41 @@
-import multer from "multer";
+// upload.js
 
-// Use memory storage to hold the file as a buffer in memory
+import multer from "multer";
+import path from "path";
+
 const storage = multer.memoryStorage();
 
-// Function to filter for only image files
+// --- MODIFIED FILE FILTER ---
+// This version is more robust as it checks against a specific list of allowed MIME types.
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/pjpeg", // For older versions of IE
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    // If the MIME type is in our list, accept the file
     cb(null, true);
   } else {
-    cb(new Error("Not an image! Please upload an image.", 400), false);
+    // Otherwise, reject it
+    cb(
+      new Error(
+        "Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed."
+      ),
+      false
+    );
   }
 };
 
-// Configure multer with storage, file filter, and size limits
-// IMPORTANT: Add a file size limit to prevent oversized images from crashing your server
 const upload = multer({
   storage: storage,
-  fileFilter: fileFilter,
+  fileFilter: fileFilter, // Use the updated filter
   limits: {
-    // 10MB limit for embedded images. MongoDB documents are limited to 16MB.
-    fileSize: 10 * 1024 * 1024,
+    // 5MB file size limit
+    fileSize: 5 * 1024 * 1024,
   },
 });
 

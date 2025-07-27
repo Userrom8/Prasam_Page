@@ -3,13 +3,21 @@ import { useState, useEffect } from "react";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Contact = () => {
-  const [email, setEmail] = useState("your-email@example.com");
+  const [email, setEmail] = useState("");
+  const [number, setNumber] = useState("");
+  const [linkedinLink, setLinkedinLink] = useState("");
+  const [instagramLink, setInstagramLink] = useState("");
+  const [facebookLink, setFacebookLink] = useState("");
 
   useEffect(() => {
     fetch(`${API_URL}/content`)
       .then((res) => res.json())
       .then((data) => {
         if (data.contactEmail) setEmail(data.contactEmail);
+        if (data.contactNumber) setNumber(data.contactNumber);
+        if (data.linkedinLink) setLinkedinLink(data.linkedinLink);
+        if (data.instagramLink) setInstagramLink(data.instagramLink);
+        if (data.facebookLink) setFacebookLink(data.facebookLink);
       })
       .catch((err) => console.error("Failed to fetch contact email:", err));
   }, []);
@@ -49,27 +57,48 @@ const Contact = () => {
                 <i className="fas fa-envelope text-sky-500 fa-lg mr-4"></i>
                 <a
                   href={`mailto:${email}`}
-                  className="hover:text-sky-400 text-lg"
+                  className="hover:text-sky-400 text-lg truncate"
                 >
                   {email}
                 </a>
               </div>
               <div className="flex items-center">
+                <i className="fas fa-phone text-sky-500 fa-lg mr-4"></i>
+                <a
+                  href={`tel:${number}`}
+                  className="hover:text-sky-400 text-lg truncate"
+                >
+                  {number}
+                </a>
+              </div>
+              <div className="flex items-center">
                 <i className="fab fa-linkedin text-sky-500 fa-lg mr-4"></i>
-                <a href="#" className="hover:text-sky-400 text-lg">
+                <a
+                  href={linkedinLink}
+                  target="_blank"
+                  className="hover:text-sky-400 text-lg"
+                >
                   LinkedIn
                 </a>
               </div>
               <div className="flex items-center">
                 <i className="fab fa-instagram text-sky-500 fa-lg mr-4"></i>
-                <a href="#" className="hover:text-sky-400 text-lg">
+                <a
+                  href={instagramLink}
+                  target="_blank"
+                  className="hover:text-sky-400 text-lg"
+                >
                   Instagram
                 </a>
               </div>
               <div className="flex items-center">
-                <i className="fab fa-twitter text-sky-500 fa-lg mr-4"></i>
-                <a href="#" className="hover:text-sky-400 text-lg">
-                  Twitter
+                <i className="fab fa-facebook text-sky-500 fa-lg mr-4"></i>
+                <a
+                  href={facebookLink}
+                  target="_blank"
+                  className="hover:text-sky-400 text-lg"
+                >
+                  Facebook
                 </a>
               </div>
             </div>

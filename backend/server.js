@@ -22,8 +22,13 @@ const corsOptions = {
 
 // --- MIDDLEWARE ---
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); //required
+app.options("*", cors(corsOptions)); //required
 app.use(express.json());
+
+// --- SERVE STATIC FILES ---
+// This makes the 'uploads/images' folder publicly accessible via the '/api/image' route.
+// For example: http://localhost:5000/api/image/1678886400000.jpg
+app.use("/api/image", express.static("uploads/images"));
 
 // --- ROUTES ---
 app.get("/", (req, res) => {

@@ -5,7 +5,8 @@ import * as fileController from "../controller/fileController.js";
 const router = express.Router();
 
 // Destructure the controller functions
-const { getFiles, uploadFile, displayFile, deleteFile } = fileController;
+const { getFiles, uploadFile, displayFile, deleteFile, updateImageOrder } =
+  fileController;
 
 // @route   GET /api/files
 // @desc    Get all image metadata
@@ -22,5 +23,9 @@ router.get("/image/:filename", displayFile);
 // @route   DELETE /api/image/:filename
 // @desc    Delete a single image
 router.delete("/image/:filename", deleteFile);
+
+// @route   PUT /api/reorder
+// @desc    Update image order
+router.put("/reorder", updateImageOrder);
 
 export default router;

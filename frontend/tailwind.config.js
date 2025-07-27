@@ -1,12 +1,19 @@
+import forms from "@tailwindcss/forms";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: "selector",
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       screens: {
         "lg+": "1200px",
-        "xs": "425px",
+        xs: "425px",
         "xs+": "375px",
       },
       fontFamily: {
@@ -60,5 +67,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [forms],
 };

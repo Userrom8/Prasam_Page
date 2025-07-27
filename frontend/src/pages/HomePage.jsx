@@ -1,9 +1,6 @@
 import { useEffect, useContext, useRef, useLayoutEffect } from "react";
-
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
-
 import gsap from "gsap";
-
 import Nav from "../components/Nav";
 import Hero from "../components/Hero";
 import Content from "../components/Content";
@@ -11,9 +8,7 @@ import Footer from "../components/Footer";
 import Testimonials from "../components/Testimonials";
 import Contact from "../components/Contact";
 import AutoPlaySound from "../components/AutoPlaySound";
-
 import ThemeContext from "../services/theme";
-
 import "../App.css";
 
 const HomePage = () => {
@@ -28,6 +23,20 @@ const HomePage = () => {
   const comp = useRef(null);
 
   useLayoutEffect(() => {
+    // Check if the intro has already been seen in this session
+    const hasSeenIntro = sessionStorage.getItem("hasSeenIntro");
+
+    if (hasSeenIntro) {
+      // If the intro has been seen, hide the animation elements immediately
+      const hideElement = document.getElementById("hide");
+      if (hideElement) {
+        hideElement.style.display = "none";
+      }
+      enablePageScroll();
+      return; // Exit the effect to prevent the animation from running
+    }
+
+    // If the intro has not been seen, run the animation
     let ctx = gsap.context(() => {
       const t1 = gsap.timeline();
       t1.from("#intro-slider", {
@@ -61,18 +70,24 @@ const HomePage = () => {
           xPercent: "-100",
           duration: 0.7,
           onComplete: () => {
-            document.getElementById("hide").style.display = "none";
+            const hideElement = document.getElementById("hide");
+            if (hideElement) {
+              hideElement.style.display = "none";
+            }
             enablePageScroll();
+            // --- SET THE FLAG ---
+            // After the animation is complete, set the flag in sessionStorage
+            sessionStorage.setItem("hasSeenIntro", "true");
           },
         });
     }, comp);
 
     return () => ctx.revert();
-  }, []);
+  }, []); // The empty dependency array ensures this runs only once on component mount
 
   return (
     <main>
-      <AutoPlaySound />
+      {!sessionStorage.getItem("hasSeenIntro") && <AutoPlaySound />}
 
       <div id="hide" className="fixed z-30" ref={comp}>
         <div

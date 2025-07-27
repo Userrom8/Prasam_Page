@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../services/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 const LoginPage = () => {
   const [password, setPassword] = useState("");

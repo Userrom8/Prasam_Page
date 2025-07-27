@@ -1,11 +1,25 @@
 import { useState, useEffect, useContext, useRef } from "react";
-
+import { useLocation } from "react-router-dom";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 
 import ThemeContext from "../services/theme";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Nav = () => {
+  const { pathname } = useLocation();
+
   const { dark, setDark } = useContext(ThemeContext);
+  const [number, setNumber] = useState("");
+
+  useEffect(() => {
+    fetch(`${API_URL}/content`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.contactNumber) setNumber(data.contactNumber);
+      })
+      .catch((err) => console.error("Failed to fetch contact email:", err));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("darkMode", dark);
@@ -144,6 +158,9 @@ const Nav = () => {
     return (
       <button
         type="button"
+        onClick={() => {
+          window.location.href = `tel:${number}`;
+        }}
         className="dark:bg-stone-300 bg-stone-800 dark:hover:bg-stone-600 hover:bg-stone-400 dark:text-black text-white dark:hover:text-white hover:text-black rounded transition-all dark:active:bg-stone-700 active:bg-stone-300 active:shadow-inner w-[90%]"
       >
         <p className="py-2 px-3">Schedule a call</p>
@@ -209,9 +226,11 @@ const Nav = () => {
       >
         <div className="max-w-7xl w-full flex items-center justify-between font-Grotesk text-lg">
           <div>Prasam.</div>
-          <div className="hidden gap-8 md:flex">
-            {links.map((link, index) => navLinks(link, index))}
-          </div>
+          {pathname === "/" && (
+            <div className="hidden gap-8 md:flex">
+              {links.map((link, index) => navLinks(link, index))}
+            </div>
+          )}
           <div className="flex-row items-center lg:gap-4 gap-2 hidden md:flex">
             <SunMoon />
             <div className="h-4 w-0.5 bg-gray-400"></div>
@@ -284,9 +303,11 @@ const Nav = () => {
             </button>
           </div>
 
-          <div className="border-b dark:border-gray-700 border-gray-400 flex flex-col w-full gap-2 p-4 text-lg font-semibold">
-            {links.map((link, index) => navLinks(link, index))}
-          </div>
+          {pathname === "/" && (
+            <div className="border-b dark:border-gray-700 border-gray-400 flex flex-col w-full gap-2 p-4 text-lg font-semibold">
+              {links.map((link, index) => navLinks(link, index))}
+            </div>
+          )}
 
           <div className="border-b dark:border-gray-700 border-gray-400 flex flex-col items-center justify-evenly w-full gap-2 p-4">
             <div className="flex items-center flex-row justify-between w-[90%]">

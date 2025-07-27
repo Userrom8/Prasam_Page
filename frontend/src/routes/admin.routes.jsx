@@ -1,5 +1,4 @@
-import AdminPage from "../pages/AdminPage";
-import LoginPage from "../pages/LoginPage";
+import { AdminPage, LoginPage } from "../pages";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 const adminRoutes = [

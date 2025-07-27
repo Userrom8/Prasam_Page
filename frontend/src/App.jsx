@@ -1,9 +1,9 @@
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import ThemeContext from "./services/theme";
 import allRoutes from "./routes";
-import { AuthProvider } from "./services/AuthContext";
+import { AuthProvider } from "./services/AuthProvider";
 
 import "./App.css";
 
@@ -20,11 +20,13 @@ const App = () => {
     <AuthProvider>
       <main>
         <div className="main"></div>
-        <Routes>
-          {allRoutes.map((route, index) => (
-            <Route key={index} path={route.path} element={route.element} />
-          ))}
-        </Routes>
+        <Suspense>
+          <Routes>
+            {allRoutes.map((route, index) => (
+              <Route key={index} path={route.path} element={route.element} />
+            ))}
+          </Routes>
+        </Suspense>
       </main>
     </AuthProvider>
   );

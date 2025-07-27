@@ -1,9 +1,30 @@
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Footer = () => {
+  const { pathname } = useLocation();
+
+  const [linkedinLink, setLinkedinLink] = useState("");
+  const [instagramLink, setInstagramLink] = useState("");
+  const [facebookLink, setFacebookLink] = useState("");
+
+  useEffect(() => {
+    fetch(`${API_URL}/content`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.linkedinLink) setLinkedinLink(data.linkedinLink);
+        if (data.instagramLink) setInstagramLink(data.instagramLink);
+        if (data.facebookLink) setFacebookLink(data.facebookLink);
+      })
+      .catch((err) => console.error("Failed to fetch contact email:", err));
+  }, []);
+
   const socialLinks = [
-    { name: "Facebook", url: "#", icon: "fab fa-facebook-f" },
-    { name: "Twitter", url: "#", icon: "fab fa-twitter" },
-    { name: "Instagram", url: "#", icon: "fab fa-instagram" },
-    { name: "LinkedIn", url: "#", icon: "fab fa-linkedin-in" },
+    { name: "Facebook", url: `${facebookLink}`, icon: "fab fa-facebook-f" },
+    { name: "Instagram", url: `${instagramLink}`, icon: "fab fa-instagram" },
+    { name: "LinkedIn", url: `${linkedinLink}`, icon: "fab fa-linkedin-in" },
   ];
 
   return (
@@ -19,27 +40,28 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="#target-section" className="hover:text-sky-400">
-                  Gallery
-                </a>
-              </li>
-              <li>
-                <a href="#testimonials" className="hover:text-sky-400">
-                  Client Reviews
-                </a>
-              </li>
-              <li>
-                <a href="#contact-section" className="hover:text-sky-400">
-                  Contact Me
-                </a>
-              </li>
-            </ul>
-          </div>
+          {pathname === "/" && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                <li>
+                  <a href="#target-section" className="hover:text-sky-400">
+                    Gallery
+                  </a>
+                </li>
+                <li>
+                  <a href="#testimonials" className="hover:text-sky-400">
+                    Client Reviews
+                  </a>
+                </li>
+                <li>
+                  <a href="#contact-section" className="hover:text-sky-400">
+                    Contact Me
+                  </a>
+                </li>
+              </ul>
+            </div>
+          )}
 
           {/* Social Media */}
           <div>
@@ -49,6 +71,7 @@ const Footer = () => {
                 <a
                   key={link.name}
                   href={link.url}
+                  target="_blank"
                   className="text-gray-400 hover:text-white"
                 >
                   <i className={link.icon}></i>
