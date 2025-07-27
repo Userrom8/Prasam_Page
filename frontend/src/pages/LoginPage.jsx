@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
@@ -8,6 +8,11 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+    return () => {};
+  }, []);
 
   // Redirect to the page the user was trying to access, or default to /admin
   const from = location.state?.from?.pathname || "/admin";

@@ -2,44 +2,33 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+const SkeletonPhoto = () => (
+  <div className="flex items-center justify-center flex-col">
+    <div className="bg-gray-300 dark:bg-neutral-700 animate-pulse 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 h-72 rounded-md shadow-lg"></div>
+  </div>
+);
 
 const Content = () => {
   const [photos, setPhotos] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch all image metadata from the backend
     fetch(`${API_URL}/files`)
       .then((res) => res.json())
       .then((data) => {
         setPhotos(data.slice(0, 20));
       })
-      .catch((err) => console.error("Failed to fetch photos:", err));
+      .catch((err) => console.error("Failed to fetch photos:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    // Lock page scroll when the modal is open
     selectedImage ? disablePageScroll() : enablePageScroll();
   }, [selectedImage]);
-
-  useEffect(() => {
-    // Attempt to block screenshots
-    const handleKeyDown = (e) => {
-      if (e.key === "PrintScreen") {
-        e.preventDefault();
-        alert("Screenshots are disabled on this page.");
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
 
   const handleImageClick = (imageUrl) => {
     setSelectedImage(imageUrl);
@@ -49,7 +38,6 @@ const Content = () => {
     setSelectedImage(null);
   };
 
-  // Prevent right-click context menu
   const preventContextMenu = (e) => {
     e.preventDefault();
   };
@@ -66,31 +54,38 @@ const Content = () => {
             Memories, I was able to capture in a frame...
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-y-40 lg+:grid-cols-4 md:grid-cols-3 pt-20">
-          {photos.map((photo) => (
-            <div key={photo._id} className="flex items-center flex-col">
-              <motion.img
-                src={`${API_URL}/image/${photo.filename}`}
-                alt={photo.filename}
-                loading="lazy"
-                className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 xs:w-40 w-28 h-auto rounded-md cursor-pointer shadow-lg"
-                whileHover={{ scale: 1.05 }}
-                onClick={() =>
-                  handleImageClick(`${API_URL}/image/${photo.filename}`)
-                }
-                onContextMenu={preventContextMenu}
-              />
-            </div>
-          ))}
+        <div className="grid grid-cols-2 gap-y-10 sm:gap-y-20 md:grid-cols-3 lg:grid-cols-4 pt-20">
+          {/* skeleton */}
+          {loading
+            ? Array.from({ length: 8 }).map((_, index) => (
+                <SkeletonPhoto key={index} />
+              ))
+            : photos.map((photo) => (
+                <div
+                  key={photo._id}
+                  className="flex items-center justify-center flex-col"
+                >
+                  <motion.img
+                    src={`${API_URL}/image/${photo.filename}`}
+                    alt={photo.filename}
+                    loading="lazy"
+                    className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 h-auto rounded-md cursor-pointer shadow-lg"
+                    whileHover={{ scale: 1.05 }}
+                    onClick={() =>
+                      handleImageClick(`${API_URL}/image/${photo.filename}`)
+                    }
+                    onContextMenu={preventContextMenu}
+                  />
+                </div>
+              ))}
         </div>
 
         <div className="text-center mt-20">
           <Link
             to="/gallery"
-            className="inline-flex items-center justify-center gap-3 px-8 py-4 font-semibold rounded-lg text-white bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-600 hover:to-cyan-500 shadow-lg hover:shadow-cyan-500/40 transform hover:-translate-y-1 transition-all duration-300 ease-in-out"
+            className="shadow-[inset_0_0_0_2px_#616467] text-black px-8 py-3 rounded-full tracking-wide hover:tracking-widest uppercase font-thin bg-transparent hover:bg-[#616467] hover:text-white dark:text-neutral-200 transition-all duration-500"
           >
             <span>View All Photos</span>
-            <ArrowRight size={20} />
           </Link>
         </div>
 

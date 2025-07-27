@@ -8,6 +8,7 @@ const Contact = () => {
   const [linkedinLink, setLinkedinLink] = useState("");
   const [instagramLink, setInstagramLink] = useState("");
   const [facebookLink, setFacebookLink] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${API_URL}/content`)
@@ -19,8 +20,16 @@ const Contact = () => {
         if (data.instagramLink) setInstagramLink(data.instagramLink);
         if (data.facebookLink) setFacebookLink(data.facebookLink);
       })
-      .catch((err) => console.error("Failed to fetch contact email:", err));
+      .catch((err) => console.error("Failed to fetch contact content:", err))
+      .finally(() => setLoading(false));
   }, []);
+
+  const SkeletonRow = () => (
+    <div className="flex items-center">
+      <div className="w-6 h-6 bg-gray-300 dark:bg-neutral-700 rounded-full mr-4 animate-pulse"></div>
+      <div className="w-1/2 h-5 bg-gray-300 dark:bg-neutral-700 rounded-md animate-pulse"></div>
+    </div>
+  );
 
   return (
     <div id="contact-section" className="w-full py-20">
@@ -53,54 +62,79 @@ const Contact = () => {
               Contact Information
             </h3>
             <div className="space-y-6">
-              <div className="flex items-center">
-                <i className="fas fa-envelope text-sky-500 fa-lg mr-4"></i>
-                <a
-                  href={`mailto:${email}`}
-                  className="hover:text-sky-400 text-lg truncate"
-                >
-                  {email}
-                </a>
-              </div>
-              <div className="flex items-center">
-                <i className="fas fa-phone text-sky-500 fa-lg mr-4"></i>
-                <a
-                  href={`tel:${number}`}
-                  className="hover:text-sky-400 text-lg truncate"
-                >
-                  {number}
-                </a>
-              </div>
-              <div className="flex items-center">
-                <i className="fab fa-linkedin text-sky-500 fa-lg mr-4"></i>
-                <a
-                  href={linkedinLink}
-                  target="_blank"
-                  className="hover:text-sky-400 text-lg"
-                >
-                  LinkedIn
-                </a>
-              </div>
-              <div className="flex items-center">
-                <i className="fab fa-instagram text-sky-500 fa-lg mr-4"></i>
-                <a
-                  href={instagramLink}
-                  target="_blank"
-                  className="hover:text-sky-400 text-lg"
-                >
-                  Instagram
-                </a>
-              </div>
-              <div className="flex items-center">
-                <i className="fab fa-facebook text-sky-500 fa-lg mr-4"></i>
-                <a
-                  href={facebookLink}
-                  target="_blank"
-                  className="hover:text-sky-400 text-lg"
-                >
-                  Facebook
-                </a>
-              </div>
+              {loading ? (
+                <>
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </>
+              ) : (
+                <>
+                  {email && (
+                    <div className="flex items-center">
+                      <i className="fas fa-envelope text-sky-500 fa-lg mr-4"></i>
+                      <a
+                        href={`mailto:${email}`}
+                        className="hover:text-sky-400 text-lg truncate"
+                      >
+                        {email}
+                      </a>
+                    </div>
+                  )}
+                  {number && (
+                    <div className="flex items-center">
+                      <i className="fas fa-phone text-sky-500 fa-lg mr-4"></i>
+                      <a
+                        href={`tel:${number}`}
+                        className="hover:text-sky-400 text-lg truncate"
+                      >
+                        {number}
+                      </a>
+                    </div>
+                  )}
+                  {linkedinLink && (
+                    <div className="flex items-center">
+                      <i className="fab fa-linkedin text-sky-500 fa-lg mr-4"></i>
+                      <a
+                        href={linkedinLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-sky-400 text-lg"
+                      >
+                        LinkedIn
+                      </a>
+                    </div>
+                  )}
+                  {instagramLink && (
+                    <div className="flex items-center">
+                      <i className="fab fa-instagram text-sky-500 fa-lg mr-4"></i>
+                      <a
+                        href={instagramLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-sky-400 text-lg"
+                      >
+                        Instagram
+                      </a>
+                    </div>
+                  )}
+                  {facebookLink && (
+                    <div className="flex items-center">
+                      <i className="fab fa-facebook text-sky-500 fa-lg mr-4"></i>
+                      <a
+                        href={facebookLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-sky-400 text-lg"
+                      >
+                        Facebook
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -12,8 +11,9 @@ export default defineConfig({
       manifest: {
         name: "Prasam Banerjee Photography",
         short_name: "Prasam",
-        description: "Portfolio of freelance photographer Prasam Banerjee.",
-        theme_color: "#ffffff",
+        description: "The photography portfolio of Prasam Banerjee.",
+        theme_color: "#18181b",
+        background_color: "#ffffff",
         icons: [
           {
             src: "pwa-192x192.png",
