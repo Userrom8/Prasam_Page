@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { DndContext, closestCenter } from "@dnd-kit/core";
@@ -40,7 +40,7 @@ const Admin = () => {
   const [instagramLink, setInstagramLink] = useState("");
   const [facebookLink, setFacebookLink] = useState("");
   const [loading, setLoading] = useState(true);
-  const { logout } = useAuth();
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
   const [orderChanged, setOrderChanged] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
@@ -51,6 +51,29 @@ const Admin = () => {
     title: "",
     message: "",
   });
+  const [admins, setAdmins] = useState([]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+
+  const authFetch = useCallback(
+    (url, options = {}) => {
+      const headers = {
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      };
+      return fetch(url, { ...options, headers });
+    },
+    [token]
+  );
+
+  const fetchAdmins = useCallback(async () => {
+    try {
+      const res = await authFetch(`${API_URL}/admins`);
+      const data = await res.json();
+      setAdmins(data);
+    } catch (err) {
+      console.error("Failed to fetch admins:", err);
+    }
+  }, [authFetch]);
 
   const [testimonials, setTestimonials] = useState(
     Array(3).fill({ name: "", text: "", image: "" })
@@ -67,23 +90,22 @@ const Admin = () => {
     localStorage.setItem("adminTheme", JSON.stringify(dark));
   }, [dark]);
 
-  const fetchPhotos = () => {
+  const fetchPhotos = useCallback(() => {
     setLoading(true);
-    fetch(`${API_URL}/files`)
+    authFetch(`${API_URL}/files`)
       .then((response) => response.json())
       .then((data) => {
         setPhotos(data);
-        setLoading(false);
       })
       .catch((err) => {
         setError("Failed to fetch photos. Is the backend server running?");
         console.error(err);
-        setLoading(false);
-      });
-  };
+      })
+      .finally(() => setLoading(false));
+  }, [authFetch]);
 
-  const fetchContent = () => {
-    fetch(`${API_URL}/content`)
+  const fetchContent = useCallback(() => {
+    authFetch(`${API_URL}/content`)
       .then((res) => res.json())
       .then((data) => {
         setHeroText(data.heroText || "");
@@ -102,15 +124,65 @@ const Admin = () => {
         setTestimonials(filledTestimonials);
       })
       .catch((err) => console.error("Failed to fetch site content:", err));
-  };
+  }, [authFetch]);
 
   useEffect(() => {
+    fetchAdmins();
     fetchPhotos();
     fetchContent();
-  }, []);
+  }, [fetchAdmins, fetchPhotos, fetchContent]);
+
+  const handleAddAdmin = async () => {
+    if (!newAdminEmail) {
+      toast.error("Please enter an email address.");
+      return;
+    }
+
+    const promise = authFetch(`${API_URL}/admins`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: newAdminEmail }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to add admin.");
+        }
+        return res.json();
+      })
+      .then(() => {
+        setNewAdminEmail("");
+        fetchAdmins();
+      });
+
+    toast.promise(promise, {
+      loading: "Adding new admin...",
+      success: "Admin added successfully!",
+      error: (err) => err.message,
+    });
+  };
+
+  const handleRemoveAdmin = (id) => {
+    // We can add a confirmation modal here for safety, but for now, we'll proceed directly.
+    const promise = authFetch(`${API_URL}/admins/${id}`, {
+      method: "DELETE",
+    }).then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to remove admin.");
+      }
+      fetchAdmins();
+    });
+
+    toast.promise(promise, {
+      loading: "Removing admin...",
+      success: "Admin removed successfully!",
+      error: (err) => err.message, // Display specific error message on failure
+    });
+  };
 
   const handleContentUpdate = (key, value) => {
-    const promise = fetch(`${API_URL}/content`, {
+    const promise = authFetch(`${API_URL}/content`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [key]: value }),
@@ -170,7 +242,7 @@ const Admin = () => {
     // We send the index to identify which testimonial to update on the backend
     formData.append("index", index);
 
-    const promise = fetch(`${API_URL}/content/testimonial`, {
+    const promise = authFetch(`${API_URL}/content/testimonial`, {
       method: "PUT",
       body: formData, // When using FormData, browser sets the Content-Type header automatically
     })
@@ -194,7 +266,7 @@ const Admin = () => {
   };
 
   const handleRemoveTestimonialImage = (index) => {
-    const promise = fetch(`${API_URL}/content/testimonial/${index}/image`, {
+    const promise = authFetch(`${API_URL}/content/testimonial/${index}/image`, {
       method: "DELETE",
     })
       .then((res) => {
@@ -258,7 +330,7 @@ const Admin = () => {
     const uploadPromises = Array.from(selectedFiles).map((file) => {
       const formData = new FormData();
       formData.append("file", file);
-      return fetch(`${API_URL}/upload`, {
+      return authFetch(`${API_URL}/upload`, {
         method: "POST",
         body: formData,
       }).then((res) => {
@@ -288,7 +360,7 @@ const Admin = () => {
     setModalState({
       isOpen: true,
       onConfirm: () => {
-        const promise = fetch(`${API_URL}/image/${filename}`, {
+        const promise = authFetch(`${API_URL}/image/${filename}`, {
           method: "DELETE",
         }).then((res) => {
           if (!res.ok) throw new Error("Failed to delete.");
@@ -316,7 +388,7 @@ const Admin = () => {
       isOpen: true,
       onConfirm: () => {
         const deletePromises = selectedPhotos.map((filename) =>
-          fetch(`${API_URL}/image/${filename}`, { method: "DELETE" })
+          authFetch(`${API_URL}/image/${filename}`, { method: "DELETE" })
         );
 
         toast.promise(Promise.all(deletePromises), {
@@ -342,7 +414,7 @@ const Admin = () => {
 
   const handleSaveOrder = () => {
     const orderedIds = photos.map((p) => p._id);
-    const promise = fetch(`${API_URL}/reorder`, {
+    const promise = authFetch(`${API_URL}/reorder`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ orderedIds }),
@@ -701,6 +773,58 @@ const Admin = () => {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+      <div className="p-4 bg-white/10 dark:bg-neutral-800/50 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold mb-4 text-white">Manage Admins</h2>
+        <div className="space-y-4">
+          {/* Add Admin Form */}
+          <div>
+            <label
+              htmlFor="newAdminEmail"
+              className="block text-sm font-medium mb-1 text-gray-300"
+            >
+              Add New Admin
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="newAdminEmail"
+                type="email"
+                value={newAdminEmail}
+                onChange={(e) => setNewAdminEmail(e.target.value)}
+                placeholder="admin@example.com"
+                className="w-full p-2 border rounded-md bg-stone-100 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
+              />
+              <button
+                onClick={handleAddAdmin}
+                className="bg-sky-500 text-white p-2 rounded-lg hover:bg-sky-600"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+          {/* Admin List */}
+          <div>
+            <h3 className="text-md font-semibold mb-2 text-gray-200">
+              Current Admins
+            </h3>
+            <ul className="space-y-2 max-h-40 overflow-y-auto">
+              {admins.map((admin) => (
+                <li
+                  key={admin._id}
+                  className="flex justify-between items-center p-2 bg-neutral-700/50 rounded-md text-sm"
+                >
+                  <span className="text-gray-300 truncate">{admin.email}</span>
+                  <button
+                    onClick={() => handleRemoveAdmin(admin._id)}
+                    className="text-red-500 hover:text-red-400 p-1"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>

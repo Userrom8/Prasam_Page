@@ -2,29 +2,28 @@
 import { useState } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
-
-// This file now only exports the provider component.
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    sessionStorage.getItem("isAuthenticated") === "true"
-  );
+  // Read the token from localStorage on initial load
+  const [token, setToken] = useState(localStorage.getItem("authToken"));
 
-  const login = (password) => {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem("isAuthenticated", "true");
-      setIsAuthenticated(true);
-      return true;
-    }
-    return false;
+  const saveToken = (userToken) => {
+    localStorage.setItem("authToken", userToken);
+    setToken(userToken);
   };
 
   const logout = () => {
-    sessionStorage.removeItem("isAuthenticated");
-    setIsAuthenticated(false);
+    localStorage.removeItem("authToken");
+    setToken(null);
   };
 
-  const value = { isAuthenticated, login, logout };
+  // The context value now provides the token and functions to manage it
+  const value = {
+    token,
+    saveToken,
+    logout,
+    // isAuthenticated is now a derived value: true if a token exists, false otherwise
+    isAuthenticated: !!token,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

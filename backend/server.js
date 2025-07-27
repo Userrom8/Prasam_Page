@@ -6,6 +6,8 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import filesRouter from "./routes/files.js";
 import contentRouter from "./routes/content.js";
+import authRouter from "./routes/auth.js";
+import adminRouter from "./routes/admins.js";
 
 // Connect to MongoDB before starting the server
 connectDB();
@@ -37,6 +39,8 @@ app.get("/", (req, res) => {
 
 app.use("/api", filesRouter);
 app.use("/api", contentRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/admins", adminRouter);
 
 // --- START SERVER ---
 app.listen(PORT, () => {

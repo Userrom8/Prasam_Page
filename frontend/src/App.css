@@ -43,6 +43,10 @@
   @apply font-poppins font-extralight leading-none md:text-xl text-lg md:pl-10 pl-5 tracking-tight;
 }
 
-.intro_text{
-  @apply lg:text-9xl md:text-8xl sm:text-7xl xs:text-6xl xs+:text-5xl text-4xl md:pb-32 pb-20 font-Grotesk font-semibold
+.intro_text {
+  @apply lg:text-9xl md:text-8xl sm:text-7xl xs:text-6xl xs+:text-5xl text-4xl md:pb-32 pb-20 font-Grotesk font-semibold;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
