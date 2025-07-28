@@ -860,7 +860,7 @@ const Admin = () => {
 
         {/* Sidebar */}
         <aside
-          className={`fixed top-0 left-0 z-40 w-96 h-full bg-neutral-900/95 dark:bg-black/90 backdrop-blur-lg shadow-xl transform transition-transform md:translate-x-0 ${
+          className={`fixed top-0 left-0 z-40 w-60 min-[320px]:w-72 md:w-80 lg:w-96 h-full bg-neutral-900/95 dark:bg-black/90 backdrop-blur-lg shadow-xl transform transition-transform md:translate-x-0 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -895,7 +895,7 @@ const Admin = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="md:ml-96 p-4 sm:p-6 lg:p-8">
+        <main className="lg:ml-96 md:ml-80 p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
@@ -957,7 +957,10 @@ const Admin = () => {
                 items={photos.map((p) => p._id)}
                 strategy={rectSortingStrategy}
               >
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="h-6 pb-10 flex justify-end pr-24">
+                  <p>Total Photos = {photos.length}</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pr-24">
                   {photos.map((photo) => (
                     <SortablePhoto
                       key={photo._id}

@@ -40,7 +40,7 @@ const Footer = () => {
             </p>
           </div>
 
-          {pathname === "/" && (
+          {pathname === "/" ? (
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2">
@@ -60,6 +60,13 @@ const Footer = () => {
                   </a>
                 </li>
               </ul>
+            </div>
+          ) : (
+            <div className="flex items-center flex-col">
+              <h3 className="text-lg font-semibold mb-2">Quick Links</h3>
+              <a href="/" className="hover:tracking-wide hover:text-slate-100 font-thin text-slate-400">
+                main content
+              </a>
             </div>
           )}
 

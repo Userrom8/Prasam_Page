@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
@@ -10,6 +11,35 @@ const SkeletonPhoto = () => (
     <div className="bg-gray-300 dark:bg-neutral-700 animate-pulse 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 h-72 rounded-md shadow-lg"></div>
   </div>
 );
+
+const Photo = ({ photo, onClick }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const imageUrl = `${API_URL}/image/${photo.filename}`;
+
+  const preventContextMenu = (e) => {
+    e.preventDefault();
+  };
+
+  return (
+    <div className="flex items-center justify-center flex-col">
+      {/* Show the skeleton until the image is fully loaded */}
+      {!isLoaded && <SkeletonPhoto />}
+
+      {/* The actual image is hidden via CSS until the 'onLoad' event fires */}
+      <motion.img
+        src={imageUrl}
+        alt={photo.filename}
+        loading="lazy"
+        onLoad={() => setIsLoaded(true)}
+        style={{ display: isLoaded ? "block" : "none" }} // Toggles visibility
+        className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 md:h-72 sm:h-60 h-44 object-cover rounded-md cursor-pointer shadow-lg"
+        whileHover={{ scale: 1.05 }}
+        onClick={() => onClick(imageUrl)}
+        onContextMenu={preventContextMenu}
+      />
+    </div>
+  );
+};
 
 const Content = () => {
   const [photos, setPhotos] = useState([]);
@@ -55,38 +85,19 @@ const Content = () => {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-y-10 sm:gap-y-20 md:grid-cols-3 lg:grid-cols-4 pt-20">
-          {/* skeleton */}
           {loading
-            ? Array.from({ length: 8 }).map((_, index) => (
+            ? // Show initial skeletons while fetching the list of photos
+              Array.from({ length: 8 }).map((_, index) => (
                 <SkeletonPhoto key={index} />
               ))
-            : photos.map((photo) => (
-                <div
+            : // Once the list is fetched, map to the new Photo component
+              photos.map((photo) => (
+                <Photo
                   key={photo._id}
-                  className="flex items-center justify-center flex-col"
-                >
-                  <motion.img
-                    src={`${API_URL}/image/${photo.filename}`}
-                    alt={photo.filename}
-                    loading="lazy"
-                    className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 h-auto rounded-md cursor-pointer shadow-lg"
-                    whileHover={{ scale: 1.05 }}
-                    onClick={() =>
-                      handleImageClick(`${API_URL}/image/${photo.filename}`)
-                    }
-                    onContextMenu={preventContextMenu}
-                  />
-                </div>
+                  photo={photo}
+                  onClick={handleImageClick}
+                />
               ))}
-        </div>
-
-        <div className="text-center mt-20">
-          <Link
-            to="/gallery"
-            className="shadow-[inset_0_0_0_2px_#616467] text-black px-8 py-3 rounded-full tracking-wide hover:tracking-widest uppercase font-thin bg-transparent hover:bg-[#616467] hover:text-white dark:text-neutral-200 transition-all duration-500"
-          >
-            <span>View All Photos</span>
-          </Link>
         </div>
 
         <AnimatePresence>
@@ -113,6 +124,15 @@ const Content = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <div className="text-center mt-20">
+          <Link
+            to="/gallery"
+            className="shadow-[inset_0_0_0_2px_#616467] text-black px-8 py-3 rounded-full tracking-wide hover:tracking-widest uppercase font-thin bg-transparent hover:bg-[#616467] hover:text-white dark:text-neutral-200 transition-all duration-500"
+          >
+            <span>View All Photos</span>
+          </Link>
+        </div>
       </div>
     </div>
   );
