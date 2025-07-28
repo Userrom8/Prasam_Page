@@ -55,14 +55,26 @@ const Admin = () => {
   const [newAdminEmail, setNewAdminEmail] = useState("");
 
   const authFetch = useCallback(
-    (url, options = {}) => {
+    async (url, options = {}) => {
       const headers = {
         ...options.headers,
         Authorization: `Bearer ${token}`,
       };
-      return fetch(url, { ...options, headers });
+      const response = await fetch(url, { ...options, headers });
+
+      // If the token is expired or invalid, the API will return a 401 status
+      if (response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        // Use the logout function from AuthProvider to clear the token
+        logout();
+        // Redirect to the login page
+        navigate("/login");
+        // Throw an error to prevent further processing in the original function call
+        throw new Error("Unauthorized");
+      }
+      return response;
     },
-    [token]
+    [token, logout, navigate] // Add logout and navigate to the dependency array
   );
 
   const fetchAdmins = useCallback(async () => {
