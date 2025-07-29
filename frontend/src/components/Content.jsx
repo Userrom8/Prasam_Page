@@ -22,16 +22,14 @@ const Photo = ({ photo, onClick }) => {
 
   return (
     <div className="flex items-center justify-center flex-col">
-      {/* Show the skeleton until the image is fully loaded */}
       {!isLoaded && <SkeletonPhoto />}
 
-      {/* The actual image is hidden via CSS until the 'onLoad' event fires */}
       <motion.img
         src={imageUrl}
         alt={photo.filename}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
-        style={{ display: isLoaded ? "block" : "none" }} // Toggles visibility
+        style={{ display: isLoaded ? "block" : "none" }}
         className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 md:h-72 sm:h-60 h-44 object-cover rounded-md cursor-pointer shadow-lg"
         whileHover={{ scale: 1.05 }}
         onClick={() => onClick(imageUrl)}
@@ -41,20 +39,8 @@ const Photo = ({ photo, onClick }) => {
   );
 };
 
-const Content = () => {
-  const [photos, setPhotos] = useState([]);
+const Content = ({ photos, loading }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`${API_URL}/files`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPhotos(data.slice(0, 20));
-      })
-      .catch((err) => console.error("Failed to fetch photos:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   useEffect(() => {
     selectedImage ? disablePageScroll() : enablePageScroll();
@@ -86,12 +72,10 @@ const Content = () => {
         </div>
         <div className="grid grid-cols-2 gap-y-10 sm:gap-y-20 md:grid-cols-3 lg:grid-cols-4 pt-20">
           {loading
-            ? // Show initial skeletons while fetching the list of photos
-              Array.from({ length: 8 }).map((_, index) => (
+            ? Array.from({ length: 8 }).map((_, index) => (
                 <SkeletonPhoto key={index} />
               ))
-            : // Once the list is fetched, map to the new Photo component
-              photos.map((photo) => (
+            : photos.map((photo) => (
                 <Photo
                   key={photo._id}
                   photo={photo}

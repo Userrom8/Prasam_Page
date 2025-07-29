@@ -62,11 +62,16 @@ const Footer = () => {
               </ul>
             </div>
           ) : (
-            <div className="flex items-center flex-col">
-              <h3 className="text-lg font-semibold mb-2">Quick Links</h3>
-              <a href="/" className="hover:tracking-wide hover:text-slate-100 font-thin text-slate-400">
-                main content
-              </a>
+            <div className="w-fit">
+              <div className="flex items-center flex-col">
+                <h3 className="text-lg font-semibold mb-2">Quick Links</h3>
+                <a
+                  href="/"
+                  className="hover:tracking-wide hover:text-slate-100 font-thin text-slate-400 transition-all"
+                >
+                  main content
+                </a>
+              </div>
             </div>
           )}
 

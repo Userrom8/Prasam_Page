@@ -1,4 +1,10 @@
-import { useEffect, useContext, useRef, useLayoutEffect } from "react";
+import {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import gsap from "gsap";
 import Nav from "../components/Nav";
@@ -11,7 +17,46 @@ import AutoPlaySound from "../components/AutoPlaySound";
 import ThemeContext from "../services/theme";
 import "../App.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const HomePage = () => {
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [heroText, setHeroText] = useState("");
+
+  useEffect(() => {
+    // Fetch both content and files here, in the parent component
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [contentRes, filesRes] = await Promise.all([
+          fetch(`${API_URL}/content`),
+          fetch(`${API_URL}/files`),
+        ]);
+
+        const contentData = await contentRes.json();
+        const filesData = await filesRes.json();
+
+        // Set the hero text
+        setHeroText(
+          contentData.heroText || "Default welcome text from HomePage."
+        );
+
+        // Sort the photos once and store them
+        const sortedPhotos = filesData.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setPhotos(sortedPhotos);
+      } catch (err) {
+        console.error("Failed to fetch data in HomePage:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const { dark } = useContext(ThemeContext);
 
   useEffect(() => {
@@ -123,8 +168,12 @@ const HomePage = () => {
 
       <div className="app">
         <Nav />
-        <Hero />
-        <Content />
+        <Hero
+          latestShots={photos.slice(0, 7)}
+          loading={loading}
+          heroText={heroText}
+        />
+        <Content photos={photos.slice(0, 20)} loading={loading} />
         <Testimonials />
         <Contact />
         <Footer />
