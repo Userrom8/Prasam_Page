@@ -6,13 +6,6 @@ import { disablePageScroll, enablePageScroll } from "scroll-lock";
 const API_URL = import.meta.env.VITE_API_URL;
 
 // A reusable skeleton component for photo placeholders
-const SkeletonPhoto = () => (
-  <div className="flex items-center justify-center flex-col">
-    <div className="bg-gray-300 dark:bg-neutral-700 animate-pulse 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 md:h-72 sm:h-60 h-44 rounded-md shadow-lg"></div>
-  </div>
-);
-
-// Component to handle individual image loading
 const Photo = ({ photo, onClick }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const imageUrl = `${API_URL}/image/${photo.filename}`;
@@ -22,18 +15,20 @@ const Photo = ({ photo, onClick }) => {
   };
 
   return (
-    <div className="flex items-center justify-center flex-col">
-      {/* Show the skeleton until the image is fully loaded */}
-      {!isLoaded && <SkeletonPhoto />}
+    // This container sets the final dimensions from the start, preventing layout shifts.
+    // It's positioned relatively to anchor the absolutely positioned image.
+    <div className="relative 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 md:h-72 sm:h-60 h-44">
+      {/* The skeleton is a simple div that fills the container. */}
+      <div className="bg-gray-300 dark:bg-neutral-700 animate-pulse w-full h-full rounded-md shadow-lg"></div>
 
-      {/* The actual image is hidden via CSS until the 'onLoad' event fires */}
+      {/* The image is positioned absolutely to layer on top of the skeleton. */}
       <motion.img
         src={imageUrl}
         alt={photo.filename}
         loading="lazy"
         onLoad={() => setIsLoaded(true)}
-        style={{ display: isLoaded ? "block" : "none" }} // Toggles visibility
-        className="bg-slate-500 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 md:h-72 sm:h-60 h-44 object-cover rounded-md cursor-pointer shadow-lg"
+        style={{ opacity: isLoaded ? 1 : 0 }} // Fades in when loaded
+        className="absolute inset-0 w-full h-full object-cover rounded-md cursor-pointer shadow-lg transition-opacity duration-500 ease-in-out"
         whileHover={{ scale: 1.05 }}
         onClick={() => onClick(imageUrl)}
         onContextMenu={preventContextMenu}
@@ -73,6 +68,17 @@ const AllPhotos = () => {
     e.preventDefault();
   };
 
+  const SkeletonGrid = () => (
+    <>
+      {Array.from({ length: 20 }).map((_, index) => (
+        <div
+          key={index}
+          className="bg-gray-300 dark:bg-neutral-700 animate-pulse 2xl:w-60 lg:w-52 md:w-48 sm:w-40 w-32 md:h-72 sm:h-60 h-44 rounded-md shadow-lg"
+        ></div>
+      ))}
+    </>
+  );
+
   return (
     <div
       id="gallery-section"
@@ -85,20 +91,14 @@ const AllPhotos = () => {
             All memories, I was able to capture in a frame...
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-y-10 sm:gap-y-20 md:grid-cols-3 lg:grid-cols-4 pt-20">
-          {loading
-            ? // Show initial skeletons while fetching the list of photos
-              Array.from({ length: 12 }).map((_, index) => (
-                <SkeletonPhoto key={index} />
-              ))
-            : // Once the list is fetched, map to the new Photo component
-              photos.map((photo) => (
-                <Photo
-                  key={photo._id}
-                  photo={photo}
-                  onClick={handleImageClick}
-                />
-              ))}
+        <div className="grid grid-cols-2 place-items-center gap-y-10 sm:gap-y-20 md:grid-cols-3 lg:grid-cols-4 pt-20">
+          {loading ? (
+            <SkeletonGrid />
+          ) : (
+            photos.map((photo) => (
+              <Photo key={photo._id} photo={photo} onClick={handleImageClick} />
+            ))
+          )}
         </div>
 
         <AnimatePresence>

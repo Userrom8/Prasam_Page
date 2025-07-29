@@ -872,7 +872,7 @@ const Admin = () => {
 
         {/* Sidebar */}
         <aside
-          className={`fixed top-0 left-0 z-40 w-60 min-[320px]:w-72 md:w-80 lg:w-96 h-full bg-neutral-900/95 dark:bg-black/90 backdrop-blur-lg shadow-xl transform transition-transform md:translate-x-0 ${
+          className={`fixed top-0 left-0 z-40 w-60 min-[320px]:w-72 min-[425px]:w-96 h-full bg-gray-950 backdrop-blur-lg shadow-xl transform transition-transform md:translate-x-0 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
