@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+/* eslint-disable react/prop-types */
+import { useState, useEffect, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { DndContext, closestCenter } from "@dnd-kit/core";
@@ -20,478 +21,51 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
-import Modal from "./Modal"; // Import Modal
-import SortablePhoto from "./SortablePhoto"; // Import SortablePhoto
-
+import Modal from "./Modal";
+// **Recommendation**: Ensure SortablePhoto is wrapped in React.memo for best performance.
+// import { memo } from 'react';
+// const SortablePhoto = memo(({...}) => { ... });
+import SortablePhoto from "./SortablePhoto";
 import { defaultAvatar } from "../assets";
-
 import imageCompression from "browser-image-compression";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const Admin = () => {
-  const [photos, setPhotos] = useState([]);
-  const [selectedFiles, setSelectedFiles] = useState(null);
-  const [error, setError] = useState("");
-  const [heroText, setHeroText] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-  const [linkedinLink, setLinkedinLink] = useState("");
-  const [instagramLink, setInstagramLink] = useState("");
-  const [facebookLink, setFacebookLink] = useState("");
-  const [loading, setLoading] = useState(true);
-  const { token, logout } = useAuth();
-  const navigate = useNavigate();
-  const [orderChanged, setOrderChanged] = useState(false);
-  const [selectedPhotos, setSelectedPhotos] = useState([]);
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [modalState, setModalState] = useState({
-    isOpen: false,
-    onConfirm: () => {},
-    title: "",
-    message: "",
-  });
-  const [admins, setAdmins] = useState([]);
-  const [newAdminEmail, setNewAdminEmail] = useState("");
-
-  const authFetch = useCallback(
-    async (url, options = {}) => {
-      const headers = {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      };
-      const response = await fetch(url, { ...options, headers });
-
-      // If the token is expired or invalid, the API will return a 401 status
-      if (response.status === 401) {
-        toast.error("Session expired. Please log in again.");
-        // Use the logout function from AuthProvider to clear the token
-        logout();
-        // Redirect to the login page
-        navigate("/login");
-        // Throw an error to prevent further processing in the original function call
-        throw new Error("Unauthorized");
-      }
-      return response;
-    },
-    [token, logout, navigate] // Add logout and navigate to the dependency array
-  );
-
-  const fetchAdmins = useCallback(async () => {
-    try {
-      const res = await authFetch(`${API_URL}/admins`);
-      const data = await res.json();
-      setAdmins(data);
-    } catch (err) {
-      console.error("Failed to fetch admins:", err);
-    }
-  }, [authFetch]);
-
-  const [testimonials, setTestimonials] = useState(
-    Array(3).fill({ name: "", text: "", image: "" })
-  );
-  const [testimonialFiles, setTestimonialFiles] = useState({});
-
-  const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem("adminTheme");
-    return saved ? JSON.parse(saved) : true;
-  });
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    localStorage.setItem("adminTheme", JSON.stringify(dark));
-  }, [dark]);
-
-  const fetchPhotos = useCallback(() => {
-    setLoading(true);
-    authFetch(`${API_URL}/files`)
-      .then((response) => response.json())
-      .then((data) => {
-        setPhotos(data);
-      })
-      .catch((err) => {
-        setError("Failed to fetch photos. Is the backend server running?");
-        console.error(err);
-      })
-      .finally(() => setLoading(false));
-  }, [authFetch]);
-
-  const fetchContent = useCallback(() => {
-    authFetch(`${API_URL}/content`)
-      .then((res) => res.json())
-      .then((data) => {
-        setHeroText(data.heroText || "");
-        setContactEmail(data.contactEmail || "");
-        setContactNumber(data.contactNumber || "");
-        setLinkedinLink(data.linkedinLink || "");
-        setInstagramLink(data.instagramLink || "");
-        setFacebookLink(data.facebookLink || "");
-        const fetchedTestimonials = data.testimonials || [];
-        const filledTestimonials = Array(3)
-          .fill(null)
-          .map(
-            (_, i) =>
-              fetchedTestimonials[i] || { name: "", text: "", image: "" }
-          );
-        setTestimonials(filledTestimonials);
-      })
-      .catch((err) => console.error("Failed to fetch site content:", err));
-  }, [authFetch]);
-
-  useEffect(() => {
-    fetchAdmins();
-    fetchPhotos();
-    fetchContent();
-  }, [fetchAdmins, fetchPhotos, fetchContent]);
-
-  const handleAddAdmin = async () => {
-    if (!newAdminEmail) {
-      toast.error("Please enter an email address.");
-      return;
-    }
-
-    const promise = authFetch(`${API_URL}/admins`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: newAdminEmail }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to add admin.");
-        }
-        return res.json();
-      })
-      .then(() => {
-        setNewAdminEmail("");
-        fetchAdmins();
-      });
-
-    toast.promise(promise, {
-      loading: "Adding new admin...",
-      success: "Admin added successfully!",
-      error: (err) => err.message,
-    });
-  };
-
-  const handleRemoveAdmin = (id) => {
-    // We can add a confirmation modal here for safety, but for now, we'll proceed directly.
-    const promise = authFetch(`${API_URL}/admins/${id}`, {
-      method: "DELETE",
-    }).then((res) => {
-      if (!res.ok) {
-        throw new Error("Failed to remove admin.");
-      }
-      fetchAdmins();
-    });
-
-    toast.promise(promise, {
-      loading: "Removing admin...",
-      success: "Admin removed successfully!",
-      error: (err) => err.message, // Display specific error message on failure
-    });
-  };
-
-  const handleContentUpdate = (key, value) => {
-    const promise = authFetch(`${API_URL}/content`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [key]: value }),
-    }).then((res) => {
-      if (!res.ok) throw new Error("Failed to save.");
-      return res.json();
-    });
-
-    toast.promise(promise, {
-      loading: `Saving ${key.replace(/([A-Z])/g, " $1").toLowerCase()}...`,
-      success: `${key.replace(/([A-Z])/g, " $1")} updated successfully!`,
-      error: `Failed to update ${key}.`,
-    });
-  };
-
-  const handleTestimonialFieldChange = (index, field, value) => {
-    const updatedTestimonials = [...testimonials];
-    updatedTestimonials[index] = {
-      ...updatedTestimonials[index],
-      [field]: value,
-    };
-    setTestimonials(updatedTestimonials);
-  };
-
-  const handleTestimonialImageChange = async (index, file) => {
-    if (!file) return;
-
-    const sizeLimit = 1024 * 1024; // 1MB
-
-    if (file.size > sizeLimit) {
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-      };
-
-      try {
-        // Await the compression result directly
-        const compressedFile = await imageCompression(file, options);
-        setTestimonialFiles((prev) => ({ ...prev, [index]: compressedFile }));
-      } catch (error) {
-        console.error("Error compressing testimonial image:", error);
-      }
-    } else {
-      // If the file is within the limit, use it directly
-      setTestimonialFiles((prev) => ({ ...prev, [index]: file }));
-    }
-  };
-
-  const handleSaveTestimonial = (index) => {
-    const formData = new FormData();
-    formData.append("name", testimonials[index].name);
-    formData.append("text", testimonials[index].text);
-    if (testimonialFiles[index]) {
-      formData.append("image", testimonialFiles[index]);
-    }
-    // We send the index to identify which testimonial to update on the backend
-    formData.append("index", index);
-
-    const promise = authFetch(`${API_URL}/content/testimonial`, {
-      method: "PUT",
-      body: formData, // When using FormData, browser sets the Content-Type header automatically
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to save testimonial ${index + 1}.`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        fetchContent(); // Re-fetch all content to get updated data
-        setTestimonialFiles((prev) => ({ ...prev, [index]: null })); // Clear the staged file
-        return data.message;
-      });
-
-    toast.promise(promise, {
-      loading: `Saving testimonial ${index + 1}...`,
-      success: (message) => message || `Testimonial ${index + 1} saved!`,
-      error: (err) => err.message,
-    });
-  };
-
-  const handleRemoveTestimonialImage = (index) => {
-    const promise = authFetch(`${API_URL}/content/testimonial/${index}/image`, {
-      method: "DELETE",
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to remove image.");
-        }
-        return res.json();
-      })
-      .then(() => {
-        fetchContent(); // Refresh the content to show the change
-      });
-
-    toast.promise(promise, {
-      loading: "Removing image...",
-      success: "Image removed successfully!",
-      error: (err) => err.message,
-    });
-  };
-
-  const handleFileChange = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) {
-      setSelectedFiles(null);
-      return;
-    }
-
-    const options = {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 1920,
-      useWebWorker: true,
-    };
-    const sizeLimit = 1024 * 1024; // 1MB
-
-    try {
-      // Create an array of promises, where each promise resolves to a file (either original or compressed)
-      const processingPromises = Array.from(files).map((file) => {
-        if (file.size > sizeLimit) {
-          // If the file is too large, return the compression promise
-          return imageCompression(file, options);
-        }
-        // Otherwise, return a promise that resolves immediately with the original file
-        return Promise.resolve(file);
-      });
-
-      // Wait for all files to be processed
-      const processedFiles = await Promise.all(processingPromises);
-      setSelectedFiles(processedFiles);
-    } catch (error) {
-      console.error("Error processing gallery images:", error);
-      toast.error("An error occurred while preparing your images.");
-      setSelectedFiles(null); // Clear selection on error
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFiles || selectedFiles.length === 0) {
-      toast.error("Please select one or more files to upload.");
-      return;
-    }
-
-    const uploadPromises = Array.from(selectedFiles).map((file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      return authFetch(`${API_URL}/upload`, {
-        method: "POST",
-        body: formData,
-      }).then((res) => {
-        if (!res.ok) {
-          throw new Error(`Upload failed for ${file.name}`);
-        }
-        return res.json();
-      });
-    });
-
-    toast.promise(Promise.all(uploadPromises), {
-      loading: "Uploading photos...",
-      success: () => {
-        fetchPhotos();
-        setSelectedFiles(null);
-        document.getElementById("file-input").value = null;
-        return "All files uploaded successfully!";
-      },
-      error: (err) => {
-        console.error("Failed to upload one or more photos:", err);
-        return "Failed to upload one or more photos.";
-      },
-    });
-  };
-
-  const handleDeletePhoto = (filename) => {
-    setModalState({
-      isOpen: true,
-      onConfirm: () => {
-        const promise = authFetch(`${API_URL}/image/${filename}`, {
-          method: "DELETE",
-        }).then((res) => {
-          if (!res.ok) throw new Error("Failed to delete.");
-          setPhotos(photos.filter((p) => p.filename !== filename));
-        });
-
-        toast.promise(promise, {
-          loading: "Deleting photo...",
-          success: "Photo deleted successfully!",
-          error: "Failed to delete photo.",
-        });
-        setModalState({ isOpen: false });
-      },
-      title: "Delete Photo",
-      message: "Are you sure you want to delete this photo?",
-    });
-  };
-
-  const handleBulkDelete = () => {
-    if (selectedPhotos.length === 0) {
-      toast.error("Please select photos to delete.");
-      return;
-    }
-    setModalState({
-      isOpen: true,
-      onConfirm: () => {
-        const deletePromises = selectedPhotos.map((filename) =>
-          authFetch(`${API_URL}/image/${filename}`, { method: "DELETE" })
-        );
-
-        toast.promise(Promise.all(deletePromises), {
-          loading: `Deleting ${selectedPhotos.length} photos...`,
-          success: (responses) => {
-            if (responses.every((res) => res.ok)) {
-              setPhotos(
-                photos.filter((p) => !selectedPhotos.includes(p.filename))
-              );
-              setSelectedPhotos([]);
-              return "Selected photos deleted successfully!";
-            }
-            throw new Error("Some photos could not be deleted.");
-          },
-          error: "Failed to delete photos.",
-        });
-        setModalState({ isOpen: false });
-      },
-      title: "Delete Selected Photos",
-      message: `Are you sure you want to delete ${selectedPhotos.length} selected photos?`,
-    });
-  };
-
-  const handleSaveOrder = () => {
-    const orderedIds = photos.map((p) => p._id);
-    const promise = authFetch(`${API_URL}/reorder`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderedIds }),
-    }).then((res) => {
-      if (!res.ok) throw new Error("Failed to save order.");
-      setOrderChanged(false);
-    });
-
-    toast.promise(promise, {
-      loading: "Saving order...",
-      success: "Order saved successfully!",
-      error: "Failed to save order.",
-    });
-  };
-
-  function handleDragEnd(event) {
-    const { active, over } = event;
-    if (active.id !== over.id) {
-      setPhotos((items) => {
-        const oldIndex = items.findIndex((item) => item._id === active.id);
-        const newIndex = items.findIndex((item) => item._id === over.id);
-        setOrderChanged(true);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  }
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const handlePhotoSelection = (filename) => {
-    setSelectedPhotos((prev) =>
-      prev.includes(filename)
-        ? prev.filter((name) => name !== filename)
-        : [...prev, filename]
-    );
-  };
-
-  const handleSelectAll = () => {
-    setSelectedPhotos(
-      selectedPhotos.length === photos.length
-        ? []
-        : photos.map((p) => p.filename)
-    );
-  };
-
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen bg-stone-100 dark:bg-stone-900">
-        <p className="text-center text-lg text-gray-500 dark:text-gray-400">
-          Loading...
-        </p>
-      </div>
-    );
-  if (error)
-    return (
-      <div className="flex justify-center items-center h-screen bg-stone-100 dark:bg-stone-900">
-        <p className="text-center text-red-500">{error}</p>
-      </div>
-    );
-
-  const sidebarContent = (
+// ## FIX 1: Sidebar content is memoized to prevent re-renders ##
+// By wrapping the entire sidebar UI in `memo`, it will only re-render when its specific props change.
+// This stops keystrokes in its inputs from re-rendering the main photo gallery.
+const SidebarContent = memo(function SidebarContent({
+  selectedFiles,
+  handleFileChange,
+  handleUpload,
+  heroText,
+  setHeroText,
+  handleContentUpdate,
+  contactEmail,
+  setContactEmail,
+  contactNumber,
+  setContactNumber,
+  linkedinLink,
+  setLinkedinLink,
+  instagramLink,
+  setInstagramLink,
+  facebookLink,
+  setFacebookLink,
+  testimonials,
+  handleTestimonialFieldChange,
+  testimonialFiles,
+  handleTestimonialImageChange,
+  handleRemoveTestimonialImage,
+  handleSaveTestimonial,
+  admins,
+  newAdminEmail,
+  setNewAdminEmail,
+  handleAddAdmin,
+  handleRemoveAdmin,
+}) {
+  return (
     <div className="p-4 space-y-6">
+      {/* Upload Photos Section */}
       <div className="p-4 bg-white/10 dark:bg-neutral-800/50 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-3 text-white">Upload Photos</h2>
         <div className="flex flex-col gap-3">
@@ -523,6 +97,7 @@ const Admin = () => {
           </button>
         </div>
       </div>
+      {/* Manage Site Content Section */}
       <div className="p-4 bg-white/10 dark:bg-neutral-800/50 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-white">
           Manage Site Content
@@ -674,7 +249,6 @@ const Admin = () => {
           </div>
         </div>
       </div>
-
       {/* Testimonials Section */}
       <div className="p-4 bg-white/10 dark:bg-neutral-800/50 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-white">
@@ -738,7 +312,6 @@ const Admin = () => {
                 </label>
                 <div className="flex items-center gap-4">
                   <img
-                    // Use the testimonial image if it exists, otherwise fall back to the default avatar
                     src={testimonial.image || defaultAvatar}
                     alt="Current"
                     className="w-12 h-12 object-cover rounded-full"
@@ -787,6 +360,7 @@ const Admin = () => {
           ))}
         </div>
       </div>
+      {/* Manage Admins Section */}
       <div className="p-4 bg-white/10 dark:bg-neutral-800/50 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-white">Manage Admins</h2>
         <div className="space-y-4">
@@ -841,6 +415,439 @@ const Admin = () => {
       </div>
     </div>
   );
+});
+
+const Admin = () => {
+  const [photos, setPhotos] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState(null);
+  const [error, setError] = useState("");
+  const [heroText, setHeroText] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [linkedinLink, setLinkedinLink] = useState("");
+  const [instagramLink, setInstagramLink] = useState("");
+  const [facebookLink, setFacebookLink] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { token, logout } = useAuth();
+  const navigate = useNavigate();
+  const [orderChanged, setOrderChanged] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    onConfirm: () => {},
+    title: "",
+    message: "",
+  });
+  const [admins, setAdmins] = useState([]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [testimonials, setTestimonials] = useState(
+    Array(3).fill({ name: "", text: "", image: "" })
+  );
+  const [testimonialFiles, setTestimonialFiles] = useState({});
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem("adminTheme");
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+    localStorage.setItem("adminTheme", JSON.stringify(dark));
+  }, [dark]);
+
+  // ## FIX 2: All handlers are wrapped in `useCallback` ##
+  // This ensures that the functions passed to the memoized SidebarContent component
+  // and other child components have stable references, preventing unnecessary re-renders.
+  const authFetch = useCallback(
+    async (url, options = {}) => {
+      const headers = {
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      };
+      const response = await fetch(url, { ...options, headers });
+      if (response.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        logout();
+        navigate("/login");
+        throw new Error("Unauthorized");
+      }
+      return response;
+    },
+    [token, logout, navigate]
+  );
+
+  const fetchAdmins = useCallback(async () => {
+    try {
+      const res = await authFetch(`${API_URL}/admins`);
+      const data = await res.json();
+      setAdmins(data);
+    } catch (err) {
+      console.error("Failed to fetch admins:", err);
+    }
+  }, [authFetch]);
+
+  const fetchPhotos = useCallback(() => {
+    setLoading(true);
+    authFetch(`${API_URL}/files`)
+      .then((response) => response.json())
+      .then((data) => setPhotos(data))
+      .catch((err) => {
+        setError("Failed to fetch photos. Is the backend server running?");
+        console.error(err);
+      })
+      .finally(() => setLoading(false));
+  }, [authFetch]);
+
+  const fetchContent = useCallback(() => {
+    authFetch(`${API_URL}/content`)
+      .then((res) => res.json())
+      .then((data) => {
+        setHeroText(data.heroText || "");
+        setContactEmail(data.contactEmail || "");
+        setContactNumber(data.contactNumber || "");
+        setLinkedinLink(data.linkedinLink || "");
+        setInstagramLink(data.instagramLink || "");
+        setFacebookLink(data.facebookLink || "");
+        const filledTestimonials = Array(3)
+          .fill(null)
+          .map(
+            (_, i) =>
+              data.testimonials?.[i] || { name: "", text: "", image: "" }
+          );
+        setTestimonials(filledTestimonials);
+      })
+      .catch((err) => console.error("Failed to fetch site content:", err));
+  }, [authFetch]);
+
+  useEffect(() => {
+    fetchAdmins();
+    fetchPhotos();
+    fetchContent();
+  }, [fetchAdmins, fetchPhotos, fetchContent]);
+
+  const handleAddAdmin = useCallback(async () => {
+    if (!newAdminEmail) {
+      toast.error("Please enter an email address.");
+      return;
+    }
+    const promise = authFetch(`${API_URL}/admins`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: newAdminEmail }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to add admin.");
+        return res.json();
+      })
+      .then(() => {
+        setNewAdminEmail("");
+        fetchAdmins();
+      });
+    toast.promise(promise, {
+      loading: "Adding new admin...",
+      success: "Admin added successfully!",
+      error: (err) => err.message,
+    });
+  }, [authFetch, newAdminEmail, fetchAdmins]);
+
+  const handleRemoveAdmin = useCallback(
+    (id) => {
+      const promise = authFetch(`${API_URL}/admins/${id}`, {
+        method: "DELETE",
+      }).then((res) => {
+        if (!res.ok) throw new Error("Failed to remove admin.");
+        fetchAdmins();
+      });
+      toast.promise(promise, {
+        loading: "Removing admin...",
+        success: "Admin removed successfully!",
+        error: (err) => err.message,
+      });
+    },
+    [authFetch, fetchAdmins]
+  );
+
+  const handleContentUpdate = useCallback(
+    (key, value) => {
+      const promise = authFetch(`${API_URL}/content`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: value }),
+      }).then((res) => {
+        if (!res.ok) throw new Error("Failed to save.");
+        return res.json();
+      });
+
+      toast.promise(promise, {
+        loading: `Saving ${key.replace(/([A-Z])/g, " $1").toLowerCase()}...`,
+        success: `${key.replace(/([A-Z])/g, " $1")} updated successfully!`,
+        error: `Failed to update ${key}.`,
+      });
+    },
+    [authFetch]
+  );
+
+  const handleTestimonialFieldChange = useCallback((index, field, value) => {
+    setTestimonials((current) =>
+      current.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    );
+  }, []);
+
+  const handleTestimonialImageChange = useCallback(async (index, file) => {
+    if (!file) return;
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+    try {
+      const compressedFile =
+        file.size > 1024 * 1024 ? await imageCompression(file, options) : file;
+      setTestimonialFiles((prev) => ({ ...prev, [index]: compressedFile }));
+    } catch (error) {
+      console.error("Error compressing testimonial image:", error);
+    }
+  }, []);
+
+  const handleSaveTestimonial = useCallback(
+    (index) => {
+      const formData = new FormData();
+      formData.append("name", testimonials[index].name);
+      formData.append("text", testimonials[index].text);
+      if (testimonialFiles[index]) {
+        formData.append("image", testimonialFiles[index]);
+      }
+      formData.append("index", index);
+      const promise = authFetch(`${API_URL}/content/testimonial`, {
+        method: "PUT",
+        body: formData,
+      })
+        .then((res) => {
+          if (!res.ok)
+            throw new Error(`Failed to save testimonial ${index + 1}.`);
+          return res.json();
+        })
+        .then((data) => {
+          fetchContent();
+          setTestimonialFiles((prev) => ({ ...prev, [index]: null }));
+          return data.message;
+        });
+      toast.promise(promise, {
+        loading: `Saving testimonial ${index + 1}...`,
+        success: (message) => message || `Testimonial ${index + 1} saved!`,
+        error: (err) => err.message,
+      });
+    },
+    [authFetch, testimonials, testimonialFiles, fetchContent]
+  );
+
+  const handleRemoveTestimonialImage = useCallback(
+    (index) => {
+      const promise = authFetch(
+        `${API_URL}/content/testimonial/${index}/image`,
+        {
+          method: "DELETE",
+        }
+      )
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to remove image.");
+          return res.json();
+        })
+        .then(() => {
+          fetchContent();
+        });
+      toast.promise(promise, {
+        loading: "Removing image...",
+        success: "Image removed successfully!",
+        error: (err) => err.message,
+      });
+    },
+    [authFetch, fetchContent]
+  );
+
+  const handleFileChange = useCallback(async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) {
+      setSelectedFiles(null);
+      return;
+    }
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+    try {
+      const processingPromises = files.map((file) =>
+        file.size > 1024 * 1024
+          ? imageCompression(file, options)
+          : Promise.resolve(file)
+      );
+      const processedFiles = await Promise.all(processingPromises);
+      setSelectedFiles(processedFiles);
+    } catch (error) {
+      console.error("Error processing gallery images:", error);
+      toast.error("An error occurred while preparing your images.");
+      setSelectedFiles(null);
+    }
+  }, []);
+
+  const handleUpload = useCallback(async () => {
+    if (!selectedFiles || selectedFiles.length === 0) {
+      toast.error("Please select one or more files to upload.");
+      return;
+    }
+    const uploadPromises = selectedFiles.map((file) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return authFetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      }).then((res) => {
+        if (!res.ok) throw new Error(`Upload failed for ${file.name}`);
+        return res.json();
+      });
+    });
+    toast.promise(Promise.all(uploadPromises), {
+      loading: "Uploading photos...",
+      success: () => {
+        fetchPhotos();
+        setSelectedFiles(null);
+        document.getElementById("file-input").value = null;
+        return "All files uploaded successfully!";
+      },
+      error: "Failed to upload one or more photos.",
+    });
+  }, [authFetch, selectedFiles, fetchPhotos]);
+
+  const handleDeletePhoto = useCallback(
+    (filename) => {
+      setModalState({
+        isOpen: true,
+        onConfirm: () => {
+          const promise = authFetch(`${API_URL}/image/${filename}`, {
+            method: "DELETE",
+          }).then((res) => {
+            if (!res.ok) throw new Error("Failed to delete.");
+            setPhotos((currentPhotos) =>
+              currentPhotos.filter((p) => p.filename !== filename)
+            );
+          });
+
+          toast.promise(promise, {
+            loading: "Deleting photo...",
+            success: "Photo deleted successfully!",
+            error: "Failed to delete photo.",
+          });
+          setModalState({ isOpen: false });
+        },
+        title: "Delete Photo",
+        message: "Are you sure you want to delete this photo?",
+      });
+    },
+    [authFetch]
+  );
+
+  const handleBulkDelete = useCallback(() => {
+    if (selectedPhotos.length === 0) {
+      toast.error("Please select photos to delete.");
+      return;
+    }
+    setModalState({
+      isOpen: true,
+      onConfirm: () => {
+        const deletePromises = selectedPhotos.map((filename) =>
+          authFetch(`${API_URL}/image/${filename}`, { method: "DELETE" })
+        );
+
+        toast.promise(Promise.all(deletePromises), {
+          loading: `Deleting ${selectedPhotos.length} photos...`,
+          success: (responses) => {
+            if (responses.every((res) => res.ok)) {
+              setPhotos((currentPhotos) =>
+                currentPhotos.filter(
+                  (p) => !selectedPhotos.includes(p.filename)
+                )
+              );
+              setSelectedPhotos([]);
+              return "Selected photos deleted successfully!";
+            }
+            throw new Error("Some photos could not be deleted.");
+          },
+          error: "Failed to delete photos.",
+        });
+        setModalState({ isOpen: false });
+      },
+      title: "Delete Selected Photos",
+      message: `Are you sure you want to delete ${selectedPhotos.length} selected photos?`,
+    });
+  }, [authFetch, selectedPhotos]);
+
+  const handleSaveOrder = useCallback(() => {
+    const orderedIds = photos.map((p) => p._id);
+    const promise = authFetch(`${API_URL}/reorder`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderedIds }),
+    }).then((res) => {
+      if (!res.ok) throw new Error("Failed to save order.");
+      setOrderChanged(false);
+    });
+    toast.promise(promise, {
+      loading: "Saving order...",
+      success: "Order saved successfully!",
+      error: "Failed to save order.",
+    });
+  }, [authFetch, photos]);
+
+  const handleDragEnd = useCallback((event) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      setPhotos((items) => {
+        const oldIndex = items.findIndex((item) => item._id === active.id);
+        const newIndex = items.findIndex((item) => item._id === over.id);
+        setOrderChanged(true);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate("/login");
+  }, [logout, navigate]);
+
+  const handlePhotoSelection = useCallback((filename) => {
+    setSelectedPhotos((prev) =>
+      prev.includes(filename)
+        ? prev.filter((name) => name !== filename)
+        : [...prev, filename]
+    );
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedPhotos(
+      selectedPhotos.length === photos.length
+        ? []
+        : photos.map((p) => p.filename)
+    );
+  }, [selectedPhotos.length, photos]);
+
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen bg-stone-100 dark:bg-stone-900">
+        <p className="text-center text-lg text-gray-500 dark:text-gray-400">
+          Loading...
+        </p>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="flex justify-center items-center h-screen bg-stone-100 dark:bg-stone-900">
+        <p className="text-center text-red-500">{error}</p>
+      </div>
+    );
 
   return (
     <>
@@ -886,7 +893,36 @@ const Admin = () => {
             </button>
           </div>
           <div className="h-[calc(100vh-140px)] overflow-y-auto">
-            {sidebarContent}
+            {/* ## FIX 3: Render the memoized SidebarContent component ## */}
+            <SidebarContent
+              selectedFiles={selectedFiles}
+              handleFileChange={handleFileChange}
+              handleUpload={handleUpload}
+              heroText={heroText}
+              setHeroText={setHeroText}
+              handleContentUpdate={handleContentUpdate}
+              contactEmail={contactEmail}
+              setContactEmail={setContactEmail}
+              contactNumber={contactNumber}
+              setContactNumber={setContactNumber}
+              linkedinLink={linkedinLink}
+              setLinkedinLink={setLinkedinLink}
+              instagramLink={instagramLink}
+              setInstagramLink={setInstagramLink}
+              facebookLink={facebookLink}
+              setFacebookLink={setFacebookLink}
+              testimonials={testimonials}
+              handleTestimonialFieldChange={handleTestimonialFieldChange}
+              testimonialFiles={testimonialFiles}
+              handleTestimonialImageChange={handleTestimonialImageChange}
+              handleRemoveTestimonialImage={handleRemoveTestimonialImage}
+              handleSaveTestimonial={handleSaveTestimonial}
+              admins={admins}
+              newAdminEmail={newAdminEmail}
+              setNewAdminEmail={setNewAdminEmail}
+              handleAddAdmin={handleAddAdmin}
+              handleRemoveAdmin={handleRemoveAdmin}
+            />
           </div>
           <div className="absolute bottom-0 w-full p-4 border-t border-neutral-700/50 flex items-center justify-between">
             <button
@@ -976,7 +1012,8 @@ const Admin = () => {
                   {photos.map((photo) => (
                     <SortablePhoto
                       key={photo._id}
-                      photo={{ ...photo, onDelete: handleDeletePhoto }}
+                      photo={photo}
+                      onDelete={handleDeletePhoto}
                       isSelected={selectedPhotos.includes(photo.filename)}
                       onSelectionChange={handlePhotoSelection}
                     />
