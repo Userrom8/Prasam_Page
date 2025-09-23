@@ -543,7 +543,7 @@ const Admin = () => {
       }),
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to add admin.");
+        if (!res.ok) throw new Error("minimum password lenth must be 8.");
         return res.json();
       })
       .then(() => {
