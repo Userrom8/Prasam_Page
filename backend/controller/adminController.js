@@ -6,11 +6,18 @@ export const getAllAdmins = async (req, res) => {
 };
 
 export const addAdmin = async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Email is required." });
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res
+      .status(400)
+      .json({ message: "Email and password are required." });
 
-  const newAdmin = await Admin.create({ email });
-  res.status(201).json(newAdmin);
+  try {
+    const newAdmin = await Admin.create({ email, password });
+    res.status(201).json({ email: newAdmin.email, _id: newAdmin._id });
+  } catch (error) {
+    res.status(500).json({ message: "Error creating admin", error });
+  }
 };
 
 export const removeAdmin = async (req, res) => {

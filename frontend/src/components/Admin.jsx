@@ -60,6 +60,8 @@ const SidebarContent = memo(function SidebarContent({
   admins,
   newAdminEmail,
   setNewAdminEmail,
+  newAdminPassword,
+  setNewAdminPassword,
   handleAddAdmin,
   handleRemoveAdmin,
 }) {
@@ -365,29 +367,30 @@ const SidebarContent = memo(function SidebarContent({
         <h2 className="text-xl font-semibold mb-4 text-white">Manage Admins</h2>
         <div className="space-y-4">
           {/* Add Admin Form */}
-          <div>
-            <label
-              htmlFor="newAdminEmail"
-              className="block text-sm font-medium mb-1 text-gray-300"
-            >
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-300">
               Add New Admin
             </label>
-            <div className="flex gap-2">
-              <input
-                id="newAdminEmail"
-                type="email"
-                value={newAdminEmail}
-                onChange={(e) => setNewAdminEmail(e.target.value)}
-                placeholder="admin@example.com"
-                className="w-full p-2 border rounded-md bg-stone-100 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
-              />
-              <button
-                onClick={handleAddAdmin}
-                className="bg-sky-500 text-white p-2 rounded-lg hover:bg-sky-600"
-              >
-                Add
-              </button>
-            </div>
+            <input
+              type="email"
+              value={newAdminEmail}
+              onChange={(e) => setNewAdminEmail(e.target.value)}
+              placeholder="admin@example.com"
+              className="w-full p-2 border rounded-md bg-stone-100 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
+            />
+            <input
+              type="password"
+              value={newAdminPassword}
+              onChange={(e) => setNewAdminPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full p-2 border rounded-md bg-stone-100 dark:bg-neutral-700 border-neutral-300 dark:border-neutral-600"
+            />
+            <button
+              onClick={handleAddAdmin}
+              className="w-full bg-sky-500 text-white p-2 rounded-lg hover:bg-sky-600"
+            >
+              Add Admin
+            </button>
           </div>
           {/* Admin List */}
           <div>
@@ -441,6 +444,7 @@ const Admin = () => {
   });
   const [admins, setAdmins] = useState([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
   const [testimonials, setTestimonials] = useState(
     Array(3).fill({ name: "", text: "", image: "" })
   );
@@ -526,14 +530,17 @@ const Admin = () => {
   }, [fetchAdmins, fetchPhotos, fetchContent]);
 
   const handleAddAdmin = useCallback(async () => {
-    if (!newAdminEmail) {
-      toast.error("Please enter an email address.");
+    if (!newAdminEmail || !newAdminPassword) {
+      toast.error("Please enter an email and password.");
       return;
     }
     const promise = authFetch(`${API_URL}/admins`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: newAdminEmail }),
+      body: JSON.stringify({
+        email: newAdminEmail,
+        password: newAdminPassword,
+      }),
     })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to add admin.");
@@ -541,6 +548,7 @@ const Admin = () => {
       })
       .then(() => {
         setNewAdminEmail("");
+        setNewAdminPassword("");
         fetchAdmins();
       });
     toast.promise(promise, {
@@ -548,7 +556,7 @@ const Admin = () => {
       success: "Admin added successfully!",
       error: (err) => err.message,
     });
-  }, [authFetch, newAdminEmail, fetchAdmins]);
+  }, [authFetch, newAdminEmail, newAdminPassword, fetchAdmins]);
 
   const handleRemoveAdmin = useCallback(
     (id) => {
@@ -920,6 +928,8 @@ const Admin = () => {
               admins={admins}
               newAdminEmail={newAdminEmail}
               setNewAdminEmail={setNewAdminEmail}
+              newAdminPassword={newAdminPassword}
+              setNewAdminPassword={setNewAdminPassword}
               handleAddAdmin={handleAddAdmin}
               handleRemoveAdmin={handleRemoveAdmin}
             />

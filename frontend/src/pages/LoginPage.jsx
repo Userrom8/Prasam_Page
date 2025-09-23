@@ -2,16 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { toast, Toaster } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiMail, FiKey, FiArrowRight, FiLoader } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { FiMail, FiLock, FiLogIn, FiLoader } from "react-icons/fi";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const { saveToken } = useAuth();
   const navigate = useNavigate();
@@ -20,47 +19,21 @@ const LoginPage = () => {
     document.documentElement.classList.add("dark");
   }, []);
 
-  const handleRequestOtp = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      const res = await fetch(`${API_URL}/auth/request-otp`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to send OTP.");
-      }
-
-      toast.success("OTP has been sent to your email.");
-      setStep(2);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch(`${API_URL}/auth/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "OTP verification failed.");
+        throw new Error(data.message || "Login failed.");
       }
 
       saveToken(data.token);
@@ -71,12 +44,6 @@ const LoginPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formVariants = {
-    hidden: { opacity: 0, x: -50 },
-    visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: 50 },
   };
 
   return (
@@ -103,92 +70,51 @@ const LoginPage = () => {
               <p className="mt-2 text-neutral-400">Secure. Sleek. Superior.</p>
             </div>
 
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.form
-                  key="step1"
-                  variants={formVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  onSubmit={handleRequestOtp}
-                  className="space-y-6"
-                >
-                  <div className="relative">
-                    <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your admin email"
-                      required
-                      className="w-full pl-10 pr-4 py-3 bg-neutral-700/50 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all duration-300"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 font-semibold text-white bg-sky-600 rounded-lg hover:bg-sky-700 disabled:bg-sky-600/50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
-                  >
-                    {isLoading ? (
-                      <FiLoader className="animate-spin" />
-                    ) : (
-                      <FiArrowRight />
-                    )}
-                    {isLoading ? "Sending..." : "Send OTP"}
-                  </button>
-                </motion.form>
-              )}
+            <motion.form
+              onSubmit={handleLogin}
+              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="relative">
+                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your admin email"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-700/50 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all duration-300"
+                />
+              </div>
 
-              {step === 2 && (
-                <motion.form
-                  key="step2"
-                  variants={formVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  onSubmit={handleVerifyOtp}
-                  className="space-y-6"
-                >
-                  <div className="relative">
-                    <FiKey className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                    <input
-                      id="otp"
-                      type="text"
-                      inputMode="numeric"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter OTP from your email"
-                      required
-                      className="w-full pl-10 pr-4 py-3 bg-neutral-700/50 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-300 tracking-widest text-center"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-green-600/50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
-                  >
-                    {isLoading ? (
-                      <FiLoader className="animate-spin" />
-                    ) : (
-                      <FiArrowRight />
-                    )}
-                    {isLoading ? "Verifying..." : "Login"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setError("");
-                      setStep(1);
-                    }}
-                    className="w-full text-sm text-center text-neutral-400 hover:text-white transition-colors duration-300"
-                  >
-                    Use a different email
-                  </button>
-                </motion.form>
-              )}
-            </AnimatePresence>
+              <div className="relative">
+                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-700/50 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all duration-300"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 font-semibold text-white bg-sky-600 rounded-lg hover:bg-sky-700 disabled:bg-sky-600/50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+              >
+                {isLoading ? (
+                  <FiLoader className="animate-spin" />
+                ) : (
+                  <FiLogIn />
+                )}
+                {isLoading ? "Logging in..." : "Login"}
+              </button>
+            </motion.form>
 
             {error && (
               <motion.p
