@@ -9,7 +9,7 @@ import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // All these routes are protected
-router.use(protect);
+//router.use(protect);
 
 router.route("/").get(getAllAdmins).post(addAdmin);
 
