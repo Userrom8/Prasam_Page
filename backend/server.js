@@ -22,6 +22,8 @@ const corsOptions = {
   optionsSuccessStatus: 200, // For legacy browser support
 };
 
+console.log("CORS Origin configured for:", process.env.ORIGIN);
+
 // --- MIDDLEWARE ---
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); //required
